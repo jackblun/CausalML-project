@@ -1,0 +1,548 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=macintosh">
+<meta name=Generator content="Microsoft Word 14 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Arial;
+	panose-1:2 11 6 4 2 2 2 2 2 4;}
+@font-face
+	{font-family:"Courier New";
+	panose-1:2 7 3 9 2 2 5 2 4 4;}
+@font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"\FF2D\FF33 \660E\671D";}
+@font-face
+	{font-family:"\FF2D\FF33 \660E\671D";}
+@font-face
+	{font-family:Cambria;
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:Cambria;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:Cambria;}
+.MsoChpDefault
+	{font-family:Cambria;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink=purple>
+
+<div class=WordSection1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;line-height:130%;text-autospace:none'><span
+style='font-size:10.0pt;line-height:130%;font-family:Arial;color:black'>Victor
+Chernozhukov (Instructor)</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;line-height:130%;text-autospace:none'><span
+style='font-size:10.0pt;line-height:130%;font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:4.0pt;
+margin-left:-.5in;line-height:120%;text-autospace:none'><span style='font-size:
+10.0pt;line-height:120%;font-family:Arial;color:#343434'>&nbsp;</span></p>
+
+<p class=MsoNormal align=center style='margin-top:0in;margin-right:-.5in;
+margin-bottom:0in;margin-left:-.5in;margin-bottom:.0001pt;text-align:center;
+text-autospace:none'><span style='font-size:14.0pt;font-family:Arial;
+color:#D1431B;letter-spacing:.3pt'>Machine Learning for Treatment Effects and
+Structural Equation Models</span></p>
+
+<p class=MsoNormal align=center style='margin-top:0in;margin-right:-.5in;
+margin-bottom:0in;margin-left:-.5in;margin-bottom:.0001pt;text-align:center;
+text-autospace:none'><span style='font-size:14.0pt;font-family:Arial;
+color:#D1431B;letter-spacing:.3pt'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:4.0pt;
+margin-left:-.5in;line-height:120%;text-autospace:none'><span style='font-size:
+10.0pt;line-height:120%;font-family:Arial;color:#343434'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;text-indent:27.0pt;line-height:150%;
+text-autospace:none'><b><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>The Course Idea.</span></b><span
+style='font-size:10.0pt;line-height:150%;font-family:Arial;color:black'>&nbsp;
+The course will provide a practical introduction to modern <i>high-dimensional</i>
+function fitting methods &#8212; a.k.a. machine learning &nbsp;(ML) methods&nbsp;
+&#8212; for efficient estimation and inference on the treatment effects and structural
+parameters in empirical economic models.&nbsp; Every participant will use R to
+immediately internalize and use the techniques in their own academic and
+industry work.&nbsp; All lectures, except the introductory one, will be
+accompanied by the R-code that can be used to reproduce the empirical examples
+in the lectures during the lectures.&nbsp; Thus, there will be no gap between
+theory and practice.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;text-indent:27.0pt;line-height:150%;
+text-autospace:none'><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;text-indent:27.0pt;line-height:150%;
+text-autospace:none'><b><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>Editions:</span></b><span style='font-size:10.0pt;
+line-height:150%;font-family:Arial;color:black'>&nbsp; This is the <i>6th</i>
+edition of the course to be given in CEMMAP UK and Warwick UK. Previous
+editions were given at NBER 2014, MIT in 2015 and 2016 as parts of the 14.387
+course “Applied Econometrics”, Sciences Po Paris in 2015, and in the Summer
+School of Econometrics of the Bank of Italy in Perugia 2015. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;text-indent:27.0pt;line-height:150%;
+text-autospace:none'><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt;text-indent:27.0pt;line-height:150%;
+text-autospace:none'><b><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>Outline:</span></b></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in;
+line-height:150%;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:150%;font-family:Arial;color:black'>1.<span style='font:7.0pt "Times New Roman"'>
+</span></span></b><b><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>Causal Inference in Approximately Sparse Linear Structural Equations
+Models.</span></b></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>a.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Approximately sparse econometric models as generalizations of
+conventional econometric models</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>b.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>“Double lasso” or “double partialling out” methods for efficient estimation
+and inference of causal parameters in these models.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>c.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Various empirical examples. </span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>d.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>References: 3, 4.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;line-height:150%;text-autospace:
+none'><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in;
+line-height:150%;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:150%;font-family:Arial;color:black'>2.<span style='font:7.0pt "Times New Roman"'>
+</span></span></b><b><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>Understanding of the Inference Strategy via the Double Partialling
+Out and Adaptivity.</span></b></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>a.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Theory: Frisch-Waugh 3Partialling Out.&nbsp; Adaptivity.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>b.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Laying a strategy for the use of non-sparse and generic ML methods.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><b><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>c.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><b><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>R Practicum:&nbsp; Mincer Equations, Barro-Lee, and
+Acemoglu-Johnson-Robinson examples.</span></b></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>d.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>References: 3,4, 6.</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></b></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in;
+line-height:150%;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:150%;font-family:Arial;color:black'>3-4.</span></b><b><span
+style='font-size:10.0pt;line-height:150%;font-family:Arial;color:black'>&nbsp;ML
+Methods for Prediction = Reduced Form Estimation.&nbsp; Evaluation of ML
+Methods using Test Samples.</span></b></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>a.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Penalization Regression Methods: Ridge, Lasso, Elastic Nets, etc.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>b.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Regression Trees, Random Forest, Boosted Trees.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>c.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Modern Nonlinear Regression via Neural Nets and Deep Learning </span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>d.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Aggregation and Cross-Breading of the ML methods.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>e.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>R Practicum:</span></b><span style='font-size:10.0pt;
+line-height:150%;font-family:Arial;color:black'>&nbsp; <b>Simulated, Wage, and
+Pricing Examples.</b></span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>f.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>References:&nbsp; 1, 2, 9-11.&shy;&shy;</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;line-height:150%;text-autospace:
+none'><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;line-height:150%;text-autospace:none'><b><span
+style='font-size:10.0pt;line-height:150%;font-family:Arial;color:black'>5.&nbsp;
+ML Methods for Causal Parameters -- “Double” Machine Learning for Causal
+Parameters in Treatment Effect Models and Nonlinear Econometric Models</span></b></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;line-height:150%;
+text-autospace:none'><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;text-indent:-.25in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>a.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Using generic ML (beyond Lasso) to Estimate Coefficients in
+Partially Linear Methods</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-indent:-.75in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>b.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Using generic ML to estimate ATE, ATT, LATE in Heterogeneous
+Treatment Effect Models</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-indent:-.75in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>c.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>Using generic ML methods to estimate structural parameters in Moment
+Condition problems.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-indent:-.75in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>d.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><b><span style='font-size:10.0pt;line-height:150%;font-family:
+Arial;color:black'>R-practicum: 401(k) Example.</span></b></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-indent:-.75in;line-height:
+150%;text-autospace:none'><span style='font-size:10.0pt;line-height:150%;
+font-family:Arial;color:black'>e.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>References:&nbsp; 5, 6, 7, 8.</span></p>
+
+<p class=MsoListParagraph style='margin-top:0in;margin-right:-.5in;margin-bottom:
+0in;margin-left:1.0in;margin-bottom:.0001pt;line-height:150%;text-autospace:
+none'><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6. Scalability:&nbsp; Working with
+Large Data. MapReduce, Hadoop and all that</span></b></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><span
+style='font-size:10.0pt;line-height:150%;font-family:Arial;color:black'>a.&nbsp;
+&nbsp;MapReduce, Sufficient Statistics, Linear Estimators</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b.&nbsp;&nbsp;
+MapReduce and Computation of Nonlinear Estimatos via Distributed Gradient
+Descent</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; c.&nbsp;&nbsp;
+<b>MapReduce in R.</b></span></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-right:-.5in;line-height:150%;text-autospace:
+none'><b><span style='font-size:10.0pt;line-height:150%;font-family:Arial;
+color:black'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><b><span style='font-size:10.0pt;
+font-family:Arial;color:black'>Requirements. </span></b><span style='font-size:
+10.0pt;font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>Please bring your computer to class. Install R
+and R-studio.&nbsp; Install packages “hdm”, “glmnet”, “nnet”, “randomForest”,
+“rpart”, “rpart.plot”, “gbm” from cran (e.g. type install.packages(“gbm”)) If
+you are not familiar with R, try out&nbsp; several introductory tutorials that
+are available online. Please read and understand the idea of cross-validation
+(k-fold cross-validation) to prevent overfitting, and bias and variance
+tradeoffs in nonparametric estimation.&nbsp; I will be mentioning these briefly
+in class, but I will count on you understanding this background concepts.&nbsp;
+A good reference is “Elements of Statistical Learning” which is available from
+Tibshirani’s website.</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><b><span style='font-size:10.0pt;
+font-family:Arial;color:black'>References:</span></b></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a href="http://statweb.stanford.edu/~tibs/ElemStatLearn/"><span
+style='font-size:10.0pt;font-family:Arial'>The Elements of Statistical Learning</span></a><span
+style='font-size:10.0pt;font-family:Arial'> by T. Hastie, R. Tibshirani, and J.
+Freedman. The book can be downloaded for free!</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in'><span style='font-size:
+10.0pt;font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a href="http://www-bcf.usc.edu/~gareth/ISL/"><span
+style='font-size:10.0pt;font-family:Arial'>An Introduction to Statistical
+Learning with Applications in R</span></a><span style='font-size:10.0pt;
+font-family:Arial'>, by G. James, D. Witten, T. Hastie and R. Tibshirani.&nbsp;
+The website has a lot of handy resources.</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in'><span style='font-size:
+10.0pt;font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a
+href="http://conference.nber.org/confer/2013/SI2013/ML/Chernozhukov.pdf"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED'>&quot;</span></a><a
+href="http://www.aeaweb.org/articles.php?doi=10.1257/jep.28.2.29"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED'>High-Dimensional
+Methods and Inference on Treatment and Structural Effects in Economics,&nbsp;</span></a><span
+style='font-size:10.0pt;font-family:Arial;color:black'>&quot;<i>J. Economic
+Perspectives</i> 2014, Belloni et. al. Stata replication code is&nbsp;</span><a
+href="http://www.aeaweb.org/jep/data/2802/2802-0029_data.zip"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED;text-decoration:none'>here</span></a><span
+style='font-size:10.0pt;font-family:Arial;color:black'>.&nbsp; R code
+implementation is in package “hdm”. </span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial;color:black'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><a
+href="http://restud.oxfordjournals.org/content/81/2/608.abstract?sid=56bf80c5-c794-45f1-9292-84f19f63b2b5"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED'>&quot;Inference on
+Treatment Effects After Selection Amongst High-Dimensional Controls (with an
+Application to Abortion and Crime),&quot;</span></a><u><span style='font-size:
+10.0pt;font-family:Arial;color:black'>&nbsp;</span></u><span style='font-size:
+10.0pt;font-family:Arial;color:black'>ArXiv 2011, <i>The Review of Economic
+Studies</i>, 2013, Belloni et. al. Stata and Matlab programs are&nbsp;</span><a
+href="http://faculty.chicagobooth.edu/christian.hansen/research/"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED;text-decoration:none'>here</span></a><span
+style='font-size:10.0pt;font-family:Arial;color:black'>; replication
+files&nbsp;</span><a
+href="http://restud.oxfordjournals.org/content/81/2/608.abstract?sid=56bf80c5-c794-45f1-9292-84f19f63b2b5"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED;text-decoration:none'>here</span></a><span
+style='font-size:10.0pt;font-family:Arial;color:black'>.&nbsp; R code
+implementation in package “hdm”. </span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial;color:black'>5.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span></b><a
+href="http://arxiv.org/abs/1309.4686"><span style='font-size:10.0pt;font-family:
+Arial'>“Robust Inference on Average Treatment Effects with Possibly More
+Covariates than Observations”</span></a><span style='font-size:10.0pt;
+font-family:Arial;color:black'>, Arxiv 2013, <i>Journal of Econometrics</i>,
+2015.&nbsp; by M. Farrell. </span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>6.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a
+href="http://arjournals.annualreviews.org/eprint/PJdkW8GENMNi7ynUMrzG/full/10.1146/annurev-economics-012315-015826"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED;text-decoration:none'>&quot;</span><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED'>Post-Selection and
+Post-Regularization Inference: An Elementary, General Approach,&quot;&nbsp;</span></a><i><span
+style='font-size:10.0pt;font-family:Arial;color:black'>Annual Review of
+Economics 2015</span></i><span style='font-size:10.0pt;font-family:Arial;
+color:black'>, V. Chernozhukov, C. Hansen, and M. Spindler.&nbsp; R code
+implementation in package “hdm”. </span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial;color:black'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>7.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a href="http://arxiv.org/abs/1311.2645"><span
+style='font-size:10.0pt;font-family:Arial;color:#4245ED'>&quot;Program
+Evaluation and Causal Inference with High-Dimensional Data,&quot;</span></a><span
+style='font-size:10.0pt;font-family:Arial;color:black'>&nbsp;ArXiv 2013, Econometrica,
+2016+, &nbsp;A. Belloni et al. R code implementation in package “hdm”. &nbsp;Replication
+files via Econometrica website.</span></p>
+
+<p class=MsoNormal style='margin-right:-.5in'><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-indent:-.25in'><b><span
+style='font-size:10.0pt;font-family:Arial'>8.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><span style='font-size:10.0pt;font-family:Arial'>“Double
+Machine Learning for Causal and Treatment Effects”, MIT Working Paper,&nbsp; V.
+Chernozhukov, D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, W. Newey.</span></p>
+
+<p class=MsoListParagraph><span style='font-size:10.0pt;font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-align:justify;
+text-justify:inter-ideograph;text-indent:-.25in;background:white'><b><span
+style='font-size:10.0pt;font-family:Arial'>9.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></b><a
+href="https://www.aeaweb.org/articles?id=10.1257/jep.28.2.3"><span
+style='font-size:10.0pt;font-family:Arial'>&quot;Big Data: New Tricks for
+Econometrics,&quot;</span></a><span style='font-size:10.0pt;font-family:Arial'>
+<i>Journal of Economic Perspectives 2014</i>, H. Varian.</span></p>
+
+<p class=MsoListParagraph><span style='font-size:10.0pt;font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-align:justify;
+text-justify:inter-ideograph;text-indent:-.25in;background:white'><b><span
+style='font-size:10.0pt;font-family:Arial'>10.<span style='font:7.0pt "Times New Roman"'>&nbsp;
+</span></span></b><a
+href="http://science.sciencemag.org/content/346/6210/1243089"><span
+style='font-size:10.0pt;font-family:Arial'>“Economics in the age of big data,”</span></a><span
+style='font-size:10.0pt;font-family:Arial'> <i>Science 2014</i>, L. Einav, J.
+Levin.</span></p>
+
+<p class=MsoListParagraph><span style='font-size:10.0pt;font-family:Arial'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-right:-.5in;text-align:justify;
+text-justify:inter-ideograph;text-indent:-.25in;background:white'><b><span
+style='font-size:10.0pt;font-family:Arial'>11.<span style='font:7.0pt "Times New Roman"'>&nbsp;
+</span></span></b><a
+href="https://www.aeaweb.org/articles?id=10.1257/aer.p20151023"><span
+style='font-size:10.0pt;font-family:Arial'>“Prediction Policy Problems,”</span></a><span
+style='font-size:10.0pt;font-family:Arial'> <i>American Economic Review P&amp;P
+2015</i>, J. Kleinberg, J. Ludwig, S. Mullainathan, Z. Obermeyer.</span></p>
+
+<table class=MsoNormalTable border=0 cellpadding=0 align=left style='margin-left:
+ 6.0pt;margin-right:6.0pt'>
+ <tr>
+  <td style='padding:7.0pt 7.0pt 7.0pt 7.0pt'></td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:-.5in;margin-bottom:0in;
+margin-left:-.5in;margin-bottom:.0001pt'><span style='font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></p>
+
+</div>
+
+</body>
+
+</html>
