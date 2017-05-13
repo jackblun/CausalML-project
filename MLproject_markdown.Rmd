@@ -1,0 +1,290 @@
+---
+title: "Causal ML Project - code"
+author: "Luis Armona and Jack Blundell"
+date: "May 9, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# set working directory
+setwd("C:/Users/Jack/Documents/Git/Causal-ML-project") # Jack
+#setwd('/home/luis/AtheyMLhw1') #Luis
+
+# clear things in RStudio
+rm(list = ls())
+
+# Call packages
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(glmnet)
+library(plotmo)
+library(hdm)
+library(AER)
+library(xtable)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(sas7bdat)
+library(usdm)
+
+# set seed
+#set.seed(12345)
+
+```
+
+## Introduction
+
+Here we apply a number of IV methods to two well-known papers in Economics, Acemoglu, Johnson and Robinson (2001) and Angrist and Krueger (1991). The first has a very low sample size and the second has a very high sample size.
+
+
+## AJR (2001) analysis
+
+Load AJR (2001) data
+
+```{r load, echo=F, message=FALSE, warning=FALSE}
+
+# Load AJR 2001 data
+fname <- 'Data/colonial_origins_data.csv'
+col <- read.csv(fname)
+
+```
+
+Exploratory data analysis
+
+```{r explore, echo=T}
+
+dim(col)
+
+#head(col)
+
+col.res <- col[which(col$baseco == 1),] # restrict to sample use in AJR
+
+dim(col.res)
+
+#summary(col.res)
+
+#hist(col.res$logem4) # log settler mortality (Instrument)
+
+#hist(col.res$avexpr) # average protection against expropriation risk (Outcome)
+
+#hist(col.res$temp1) # temperature measure
+
+#hist(col.res$humid1) # humidity measure
+
+#hist(col.res$lat_abst) # latitude
+
+#hist(col.res$africa) # africa dummy
+
+#hist(col.res$asia) # asia dummy
+
+#hist(col.res$steplow) # soil quality
+```
+
+Feature engineering
+
+```{r feat, echo=TRUE}
+
+y <- col.res$logpgp95 # outcome
+w <- col.res$avexpr # treatment
+z <- col.res$logem4 # instrument
+col.res$lat_abst_sq <- col.res$lat_abst^2
+x <- as.data.frame(model.matrix(~ (temp1 + humid1 + lat_abst + lat_abst_sq + steplow + asia + africa)^2, data=col.res)) # include 2-way interactions. Make sure have variation in each.
+x$`asia:africa` <- NULL
+x <- as.matrix(x)
+dim(x)
+```
+
+OLS with controls
+
+```{r ols, echo=TRUE}
+
+ols.mod = lm(y ~ cbind(w,x))
+ols = cbind(coef(summary(ols.mod))[2,1], coef(summary(ols.mod))[2,2])
+colnames(ols) = c("estimate", "standard error")
+print(ols,digits=3)
+
+```
+
+Traditional linear IV
+
+```{r tradIV, echo=TRUE}
+
+iv.mod = tsls(x=x, y=y,d=w, z=z, intercept=F) # use AER package
+iv = cbind(iv.mod$coef[1], iv.mod$se[1])
+colnames(iv) = c("estimate", "standard error")
+print(iv,digits=3)
+
+```
+
+Partialling out IV
+
+```{r partIV, echo=TRUE}
+
+party = y ~ x
+partw = w ~ x
+partz = z ~ x
+resy = lm(party)$res
+resw = lm(partw)$res
+resz = lm(partz)$res
+
+part.iv.mod = tsls(y=resy,d=resw, x=NULL, z=resz, intercept=FALSE)
+part.iv = cbind(part.iv.mod$coef, part.iv.mod$se)
+colnames(part.iv) = c("estimate", "standard error")
+print(part.iv,digits=3)
+
+```
+
+LASSO based selection of covariates
+
+```{r lassoIV, echo=TRUE}
+
+part.lasso.iv.mod = rlassoIV(x=x, y=y,d=w, z=z, select.X=TRUE, select.Z=FALSE) 
+part.lasso.iv = cbind(part.lasso.iv.mod$coef, part.lasso.iv.mod$se)
+colnames(part.lasso.iv) = c("estimate", "standard error")
+print(part.lasso.iv,digits=3)
+
+```
+
+Regression trees for partialling out 
+
+```{r treeIV, echo=TRUE}
+
+treezx.mod <- rpart(z~x)
+cp.opt <- treezx.mod$cptable[which.min(treezx.mod$cptable[,"xerror"]),"CP"]
+treezx.pr <- prune(treezx.mod,cp=cp.opt)
+resz <- z - predict(treezx.pr, as.data.frame(x))
+prp(treezx.pr)
+
+treewx.mod <- rpart(w~x)
+cp.opt <- treewx.mod$cptable[which.min(treewx.mod$cptable[,"xerror"]),"CP"]
+treewx.pr <- prune(treewx.mod,cp=cp.opt)
+resw <- w - predict(treewx.pr, as.data.frame(x))
+prp(treewx.pr)
+
+treeyx.mod <- rpart(y~x)
+cp.opt <- treeyx.mod$cptable[which.min(treeyx.mod$cptable[,"xerror"]),"CP"]
+treeyx.pr <- prune(treeyx.mod,cp=cp.opt)
+resy <- y - predict(treeyx.pr, as.data.frame(x))
+prp(treeyx.pr)
+
+part.tree.iv.mod = tsls(y=resy,d=resw, x=NULL, z=resz, intercept=FALSE)
+part.tree.iv = cbind(part.tree.iv.mod$coef, part.tree.iv.mod$se)
+colnames(part.tree.iv) = c("estimate", "standard error")
+print(part.tree.iv,digits=3)
+
+
+```
+
+Random forests for partialling out 
+
+```{r forestIV, echo=TRUE}
+
+set.seed(123)
+rfyx.mod <- randomForest(x,y)
+resy  <-  y - rfyx.mod$predicted 
+rfwx.mod <- randomForest(x,w)
+resw  <-  w - rfwx.mod$predicted 
+rfzx.mod <- randomForest(x,z)
+resz  <-  z - rfzx.mod$predicted 
+
+part.rf.iv.mod = tsls(y=resy,d=resw, x=NULL, z=resz, intercept=FALSE)
+part.rf.iv = cbind(part.rf.iv.mod$coef, part.rf.iv.mod$se)
+colnames(part.rf.iv) = c("estimate", "standard error")
+print(part.rf.iv,digits=3)
+
+
+```
+
+
+Deep IV
+
+```{r deepIV, echo=TRUE}
+
+
+```
+
+
+Comparison
+
+```{r ajr, echo=TRUE}
+
+ests <- list(ols,iv, part.iv, part.lasso.iv, part.tree.iv, part.rf.iv)
+names(ests) <- c('ols','iv', 'part.iv', 'part.lasso.iv', 'part.tree.iv', 'part.rf.iv')
+print(ests)
+
+```
+
+
+## AK (1991) analysis
+
+Load data
+
+```{r load ak 1991, echo=TRUE}
+
+# Load AK 1991 data
+fname <- 'Data/angrist_krueger_1991/AK1991.csv'
+ak <- read.csv(fname)
+
+
+```
+
+Exploratory data analysis
+
+```{r AKexplore, echo=T}
+
+dim(ak)
+
+
+```
+
+Feature engineering
+
+```{r AKfeat, echo=TRUE}
+
+ak$QTR1 <- NULL
+ak$QTR2 <- NULL
+ak$QTR3 <- NULL
+ak$QTR4 <- NULL
+
+qtr <- ak[, grep("QTR", names(ak))] # these are dummy variables for quarter / year of birth
+yr <- ak[, grep("YR", names(ak))] # year of birth
+
+qtr$QTR327 <- NULL
+qtr$QTR329 <- NULL # drop due to colinearity
+yr$YR20 <- NULL
+
+y <- ak$LWKLYWGE
+w <- ak$EDUC
+z <-  as.matrix(qtr)
+x <- as.matrix(cbind(yr, ak$MARRIED, ak$SMSA, ak$NEWENG, ak$MIDATL, ak$ENOCENT, ak$WNOCENT, ak$SOATL, ak$MT, ak$AGEQ, ak$AGEQSQ)) # controls from column 8 of table 5
+
+dim(x)
+dim(z)
+```
+
+OLS with controls (tab 5 col (7))
+
+```{r akOLS, echo=TRUE}
+
+ols.mod.ak = lm(y ~ cbind(w,x))
+ols.ak = cbind(coef(summary(ols.mod.ak))[2,1], coef(summary(ols.mod.ak))[2,2])
+colnames(ols.ak) = c("estimate", "standard error")
+print(ols.ak,digits=3)
+
+```
+
+Traditional linear IV (tab 5 col (8))
+
+```{r aktradIV, echo=TRUE}
+
+
+iv.mod.ak = tsls(x=x, y=y,d=w, z=z, intercept=F) # use AER package
+iv.ak = cbind(iv.mod.ak$coef[1], iv.mod.ak$se[1])
+colnames(iv.ak) = c("estimate", "standard error")
+print(iv.ak,digits=3)
+
+```
+
