@@ -1,6 +1,6 @@
 ---
-title: "Causal ML Project - code"
-author: "Luis Armona and Jack Blundell"
+title: "Causal ML Project - AJR (2001) code"
+author: "Luis Armona, Jack Blundell and Karthik Rajkumar"
 date: "May 9, 2017"
 output: html_document
 ---
@@ -8,8 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+# Note that RMarkdown works best with relative directories. Reseting the directory in a chunk doesn't reset it for later chunks.
 # set working directory
-setwd("C:/Users/Jack/Documents/Git/Causal-ML-project") # Jack
+#setwd("C:/Users/Jack/Documents/Git/Causal-ML-project") # Jack
 #setwd('/home/luis/AtheyMLhw1') #Luis
 
 # clear things in RStudio
@@ -35,12 +36,9 @@ library(usdm)
 
 ```
 
-## Introduction
-
-Here we apply a number of IV methods to two well-known papers in Economics, Acemoglu, Johnson and Robinson (2001) and Angrist and Krueger (1991). The first has a very low sample size and the second has a very high sample size.
-
-
 ## AJR (2001) analysis
+
+Here we apply a variety of IV methods to data from AAcemoglu, Johnson and Robinson (2001).
 
 Load AJR (2001) data
 
@@ -119,7 +117,7 @@ print(iv,digits=3)
 
 ```
 
-Partialling out IV
+Partialling out IV (This should give the same as standard IV)
 
 ```{r partIV, echo=TRUE}
 
@@ -137,7 +135,7 @@ print(part.iv,digits=3)
 
 ```
 
-LASSO based selection of covariates
+LASSO selection of covariates
 
 ```{r lassoIV, echo=TRUE}
 
@@ -214,77 +212,6 @@ Comparison
 ests <- list(ols,iv, part.iv, part.lasso.iv, part.tree.iv, part.rf.iv)
 names(ests) <- c('ols','iv', 'part.iv', 'part.lasso.iv', 'part.tree.iv', 'part.rf.iv')
 print(ests)
-
-```
-
-
-## AK (1991) analysis
-
-Load data
-
-```{r load ak 1991, echo=TRUE}
-
-# Load AK 1991 data
-fname <- 'Data/angrist_krueger_1991/AK1991.csv'
-ak <- read.csv(fname)
-
-
-```
-
-Exploratory data analysis
-
-```{r AKexplore, echo=T}
-
-dim(ak)
-
-
-```
-
-Feature engineering
-
-```{r AKfeat, echo=TRUE}
-
-ak$QTR1 <- NULL
-ak$QTR2 <- NULL
-ak$QTR3 <- NULL
-ak$QTR4 <- NULL
-
-qtr <- ak[, grep("QTR", names(ak))] # these are dummy variables for quarter / year of birth
-yr <- ak[, grep("YR", names(ak))] # year of birth
-
-qtr$QTR327 <- NULL
-qtr$QTR329 <- NULL # drop due to colinearity
-yr$YR20 <- NULL
-
-y <- ak$LWKLYWGE
-w <- ak$EDUC
-z <-  as.matrix(qtr)
-x <- as.matrix(cbind(yr, ak$MARRIED, ak$SMSA, ak$NEWENG, ak$MIDATL, ak$ENOCENT, ak$WNOCENT, ak$SOATL, ak$MT, ak$AGEQ, ak$AGEQSQ)) # controls from column 8 of table 5
-
-dim(x)
-dim(z)
-```
-
-OLS with controls (tab 5 col (7))
-
-```{r akOLS, echo=TRUE}
-
-ols.mod.ak = lm(y ~ cbind(w,x))
-ols.ak = cbind(coef(summary(ols.mod.ak))[2,1], coef(summary(ols.mod.ak))[2,2])
-colnames(ols.ak) = c("estimate", "standard error")
-print(ols.ak,digits=3)
-
-```
-
-Traditional linear IV (tab 5 col (8))
-
-```{r aktradIV, echo=TRUE}
-
-
-iv.mod.ak = tsls(x=x, y=y,d=w, z=z, intercept=F) # use AER package
-iv.ak = cbind(iv.mod.ak$coef[1], iv.mod.ak$se[1])
-colnames(iv.ak) = c("estimate", "standard error")
-print(iv.ak,digits=3)
 
 ```
 

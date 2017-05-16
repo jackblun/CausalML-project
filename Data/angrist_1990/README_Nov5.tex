@@ -1,0 +1,125 @@
+%2multibyte Version: 5.50.0.2953 CodePage: 1251
+
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{harvard}
+\usepackage{relsize}
+\usepackage{tabularx}
+\usepackage[english]{babel}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2953}
+%TCIDATA{Codepage=1251}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{LastRevised=Friday, November 05, 2010 04:28:59}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{Language=American English}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\renewcommand \thesubsection{\Roman{subsection}}
+\setlength{\topmargin}{-0.2in} \setlength{\oddsidemargin}{0.2in}
+\setlength{\textwidth}{6.3in} \setlength{\textheight}{8.6in}
+%\input{tcilatex}
+\begin{document}
+
+\title{Schooling and the Vietnam-Era GI Bill: Evidence from the Draft
+Lottery: Replication Kit}
+\author{Joshua D. Angrist and Stacey H. Chen}
+\maketitle
+
+\subsection{Additional Tables}
+
+This section includes three additional tables for nonwhites. Table A1 shows
+the effect of Vietnam-era veteran status on education, Table A2 reports the
+effect on education by birth year, and Table A3 shows the effect on labor
+market variables and other outcomes.
+
+\subsection{Replication Kit}
+
+This section includes programs that can be used to reproduce the results in
+the paper. These programs are meant to be run on non-public-use files
+archived at the Boston Census Data Center (BRDC). Researchers interested in
+working with files at the BRDC must be approved for access. See
+\begin{verbatim}
+http://www.ces.census.gov/index.php/ces/contact_us_ces
+\end{verbatim}
+
+for details.
+
+Four data steps before replication:
+
+\begin{itemize}
+\item getdata4.sas: Extract data from the raw census data set.
+
+\item vardef4.sas: Label variables and record the variable definition
+
+\item link\_rsn\_expanded\_final.sas: Link the extracted data (vardef4) to
+the lottery numbers file (dobrsn20091215), by date of birth. We include
+cohorts born between 1944 and 1955. Finally, we create a STATA data set
+(final.dta).
+
+\item define\_final.do: Use final.dta to generate analyzed variables, and
+save all used variables in a smaller data set (define\_final.dta) for
+regression analysis. See the variable definition and description in
+define\_final.do.
+\end{itemize}
+
+\begin{enumerate}
+\item Replication of table 1: t1\_final.do
+
+\item Replication of table 2: t2white\_final.do and t2nonwhite\_final.do
+
+\item Replication of table 3: t3white\_final.do
+
+\item Replication of table 4: t4white\_final.do
+
+\item Replication of table 5: t5white\_final.do
+
+\item Replication of table 6: t6white\_final.do and t6fest.do
+
+\item Replication of table 7: t7white\_final.do
+
+\item Replication of table a1: ta1\_final.do
+
+\item Replication of Online table 1: ot1\_final.do
+
+\item Replication of Online table 2: ot2\_final.do
+
+\item Replication of Online table 3: ot3\_final.do
+\end{enumerate}
+
+Replication of figures:
+
+\begin{enumerate}
+\item Replication of figure 1 (figure1.eps): figure1.do using data file
+cellavgstograph.csv
+
+\item Replication of figure 2 (figure2.eps): figure2.do using data file
+
+Brigham\_Graphnew\_SC2010March.csv, based on estimates in online table 1.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,122 @@
+%2multibyte Version: 5.50.0.2953 CodePage: 1251
+
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{harvard}
+\usepackage{relsize}
+\usepackage{tabularx}
+\usepackage[english]{babel}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2953}
+%TCIDATA{Codepage=1251}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{LastRevised=Monday, October 25, 2010 10:30:45}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{CSTFile=LaTeX article (bright).cst}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\renewcommand \thesubsection{\Roman{subsection}}
+\setlength{\topmargin}{-0.2in} \setlength{\oddsidemargin}{0.2in}
+\setlength{\textwidth}{6.3in} \setlength{\textheight}{8.6in}
+\input{tcilatex}
+\begin{document}
+
+\title{Schooling and the Vietnam-Era GI Bill: Evidence from the Draft Lottery%
+}
+\author{Joshua D. Angrist and Stacey H. Chen}
+\maketitle
+
+\section*{Web Appendix}
+
+\subsection{Sample Notes}
+
+We worked with a non-public-use version of the 1-in-6 long-form sample that
+includes date of birth. The long-form sample is the basis for the publicly
+available Integrated Public Use Microdata Series (IPUMS) files. These files
+are simple random samples drawn from the 1-in-6 file, though the 1-in-6 file
+is not a simple random sample from the census sampling frame. Rather, the
+Census Bureau reduces the sampling rate in more densely populated areas
+(Census Bureau 2005). Adjustment for variation in sampling rates is made
+here using the weighting variables that are included in the long-form file.
+These weights adjust for non-response and for non-random sampling, and are
+designed to match external population totals by age, race, sex, and Hispanic
+origin. In practice, weighting matters little for our results. We confirmed
+that the means from the 1-in-6 file are close to those from the 5 percent
+file distributed via IPUMS. The original 2000 long-form sample includes
+Puerto Rico and island territories; residents of these areas are omitted
+from our study.
+
+\subsection{Schooling Imputation}
+
+Using a matched CPS file with responses to both old (highest grade
+completed) and new (categorical) schooling questions, Jaeger (1997)
+calculates average and median highest grade completed conditional on
+categorical school values. \ He finds that the conditional median gives a
+better fit than the mean. \ We therefore use median highest grade completed
+for most categorical values. \ A drawback of this scheme, however, is that
+the categories in the new CPS schooling variable differ slightly from those
+on the 2000 Census long-form. Specifically, the Census allows for an
+additional some-college category: ``some college, but less than one year."
+Because some veterans appear to have used the GI Bill to start a college
+program which they then left, we would like to distinguish this group from
+other veterans when imputing years of schooling. \ This may matter for our
+draft-lottery estimates of linear-in-schooling human capital earnings
+functions. A second drawback of the Jaeger scheme for our purposes is that
+it assigns the same value to those who report finishing 12th grade with no
+diploma and those who received a diploma.
+
+In view of these concerns, we used Jaeger's finer conditional mean
+imputation to assign values to the census categories ``grade 12 no degree"
+and ``one or more years of college". Finally, we estimated a fractional year
+for the census category ``some college but less than one year", by assuming
+that time in college is exponentially distributed with a fixed dropout
+hazard each month. \ This hazard rate was estimated from the ratio of those
+with at least 13 years completed to those with at least 13 years enrolled in
+the 1980 Census (for men aged 26-36), assuming a fixed hazard for 8 months
+of school. The exponential parameter was then used to estimate expected
+months in school for those ever enrolled in grade 13 college who drop out
+after one year. The result is an imputed value of 12.55 years. The resulting
+imputation scheme is: no schooling (0); nursery school through 4th grade
+(2.5); 5th-6th grade (5.5); 7th-8th grade (7.5); 9th (9); 10th grade (10);
+11th grade (11); 12th grade no diploma (11.38); high school graduate (12);
+some college less than 1 year (12.55); 1 or more years of college no degree
+(13.35); associate degree (14); bachelors degree (16); masters, professional
+or doctoral degree (18).
+
+A direct application of Jaeger's formula generates results almost identical
+to those reported in the paper. \ Note also that estimates of effects of
+military service on discrete schooling variables (e.g., an indicator for
+college graduation status) are unaffected by the choice of imputation scheme.
+
+\subsection{Additional Tables}
+
+This section includes three additional tables for nonwhites. Table A1 shows
+the effect of Vietnam-era veteran status on education, Table A2 reports the
+effect on education by birth year, and Table A3 shows the effect on labor
+market variables and other outcomes.
+
+\end{document}

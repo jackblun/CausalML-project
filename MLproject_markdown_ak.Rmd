@@ -1,0 +1,218 @@
+---
+title: "Causal ML Project - AK (1991) code"
+author: "Luis Armona, Jack Blundell and Karthik Rajkumar"
+date: "May 9, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Note that RMarkdown works best with relative directories. Reseting the directory in a chunk doesn't reset it for later chunks.
+# set working directory
+#setwd("C:/Users/Jack/Documents/Git/Causal-ML-project") # Jack
+#setwd('/home/luis/AtheyMLhw1') #Luis
+
+# clear things in RStudio
+rm(list = ls())
+
+# Call packages
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(glmnet)
+library(plotmo)
+library(hdm)
+library(AER)
+library(xtable)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(sas7bdat)
+library(usdm)
+library(AER)
+
+# set seed
+#set.seed(12345)
+
+```
+
+## AK (1991) analysis
+
+Here we apply a variety of IV methods to data from Angrist and Krueger (1991).
+
+Load data
+
+```{r load ak 1991, echo=TRUE}
+
+# Load AK 1991 data
+fname <- 'Data/angrist_krueger_1991/AK1991.csv' # Note this is just for 1980
+ak <- read.csv(fname)
+
+
+```
+
+Exploratory data analysis
+
+```{r AKexplore, echo=T}
+
+dim(ak)
+head(ak)
+names(ak)
+
+```
+
+Feature engineering
+
+```{r AKfeat, echo=TRUE}
+
+y <- ak$LWKLYWGE
+w <- ak$EDUC
+
+qtr <- ak[, grep("QTR", names(ak))] # these are dummy variables for quarter / year of birth
+yr <- ak[, grep("YR", names(ak))] # year of birth
+yr$YR29 <- NULL # Drop a base year
+
+qtr$QTR1 <- NULL
+qtr$QTR2 <- NULL
+qtr$QTR3 <- NULL
+qtr$QTR4 <- NULL
+
+z <-  as.matrix(qtr)
+
+# First, the basic controls from column 8 of table 5
+x.1 <- as.matrix(cbind(yr, ak$MARRIED, ak$SMSA, ak$NEWENG, ak$MIDATL, ak$ENOCENT, ak$WNOCENT, ak$SOATL, ak$MT, ak$AGEQ, ak$AGEQSQ))
+
+# Next, put in interactions of age, age squared and all other vars
+age.int <- model.matrix(~ (MARRIED + NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL + MT + AGEQ + AGEQSQ)^2, data=ak)
+x.2 <- cbind(yr,age.int)
+
+# We need to drop any colinear variables
+no.drop <- colSums(x.2)!=0
+x.2 <- x.2[,no.drop] # drop all interactions that result in variables with all values equal to zero
+x.2$`(Intercept)` <- NULL
+x.2$`AGEQ:AGEQSQ` <- NULL
+
+x.2 <- as.matrix(x.2)
+
+dim(z)
+dim(x.1)
+dim(x.2)
+
+```
+
+OLS with controls (tab 5 col (7))
+
+```{r akOLS, echo=TRUE}
+
+ols.mod = lm(y ~ cbind(w,x.1))
+#summary(ols.mod)
+ols = cbind(coef(summary(ols.mod))[2,1], coef(summary(ols.mod))[2,2])
+colnames(ols) = c("estimate", "standard error")
+print(ols,digits=3)
+
+# Next on fuller feature space
+
+
+ols.mod = lm(y ~ cbind(w,x.2))
+#summary(ols.mod)
+ols = cbind(coef(summary(ols.mod))[2,1], coef(summary(ols.mod))[2,2])
+colnames(ols) = c("estimate", "standard error")
+print(ols,digits=3)
+
+
+```
+
+Traditional linear IV (tab 5 col (8))
+
+```{r aktradIV, echo=TRUE}
+
+# first stage
+
+fs.mod <- lm(w ~ x.1 + z)
+summary(fs.mod)
+
+# IV
+
+iv.mod <- ivreg(y ~  x.1 + w | x.1 + z)
+summary(iv.mod)
+
+## Next try on fuller feature space
+
+# first stage
+
+fs.mod <- lm(w ~ x.2 + z)
+summary(fs.mod)
+
+# IV
+
+iv.mod <- ivreg(y ~  x.2 + w | x.2 + z)
+summary(iv.mod)
+
+```
+
+Partialling out IV
+
+```{r partIV, echo=TRUE}
+
+party = y ~ x.1
+partw = w ~ x.1
+partz = z ~ x.1
+resy = lm(party)$res
+resw = lm(partw)$res
+resz = lm(partz)$res
+
+part.iv.mod = tsls(y=resy,d=resw, x=NULL, z=resz, intercept=FALSE)
+part.iv = cbind(part.iv.mod$coef, part.iv.mod$se)
+colnames(part.iv) = c("estimate", "standard error")
+print(part.iv,digits=3)
+
+## Next lets try on a fuller set of covariates
+
+party = y ~ x.2
+partw = w ~ x.2
+partz = z ~ x.2
+resy = lm(party)$res
+resw = lm(partw)$res
+resz = lm(partz)$res
+
+part.iv.mod = tsls(y=resy,d=resw, x=NULL, z=resz, intercept=FALSE)
+part.iv = cbind(part.iv.mod$coef, part.iv.mod$se)
+colnames(part.iv) = c("estimate", "standard error")
+print(part.iv,digits=3)
+
+
+```
+
+LASSO selection of covariates.
+
+```{r aklassoIV, echo=TRUE}
+
+# selecting x
+
+part.lasso.iv.mod = rlassoIV(x=x.1, y=y,d=w, z=z, select.X=TRUE, select.Z=FALSE) 
+part.lasso.iv = cbind(part.lasso.iv.mod$coef, part.lasso.iv.mod$se)
+colnames(part.lasso.iv) = c("estimate", "standard error")
+print(part.lasso.iv,digits=3)
+
+# selecting x and z (Doesn't work!)
+
+#part.lasso.iv.mod.ak.xz = rlassoIV(x=x.2, y=y,d=w, z=z, select.X=TRUE, select.Z=TRUE) 
+#part.lasso.iv.ak.xz = cbind(part.lasso.iv.mod.ak.xz$coef, part.lasso.iv.mod.ak.xz$se)
+#colnames(part.lasso.iv.ak.xz) = c("estimate", "standard error")
+#print(part.lasso.iv.ak.xz,digits=3)
+
+
+## Now lets try on a fuller set of covariates
+
+# selecting x
+
+part.lasso.iv.mod = rlassoIV(x=x.2, y=y,d=w, z=z, select.X=TRUE, select.Z=FALSE) 
+part.lasso.iv = cbind(part.lasso.iv.mod$coef, part.lasso.iv.mod$se)
+colnames(part.lasso.iv) = c("estimate", "standard error")
+print(part.lasso.iv,digits=3)
+
+
+```
+
+
