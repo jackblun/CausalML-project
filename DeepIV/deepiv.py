@@ -26,10 +26,34 @@ z = np.array(settlers.loc[:,['logem4','mi_logem4']]) #the instrument
 
 all_covars=np.r_[1:3, 7:8,10:52, 54,58:84]
 #feature sets of covariates we might consider
-x = np.array(settlers.iloc[:,17:38])
+#x = np.array(settlers.iloc[:,17:38])
 #x = np.array(settlers.iloc[:,10:13])
 #x = np.array(settlers.iloc[:,10:46]) 
-#x = settlers.iloc[:,all_covars] #this should be all of them
+x = settlers.iloc[:,all_covars] #this should be all of them
+
+
+covars =  np.concatenate((z, x), axis=1)
+collin_vars = [] #indices of variables with no variation
+#stdize all non-dummy variables to have mean 0 and SD 1
+for v in range(covars.shape[1]):
+    
+    #remove variables with one unique value- they mess stuff up later
+    if len(np.unique(covars[:,v].astype(np.float32)))==1:
+        collin_vars.append(v)
+        continue
+    #skip normalizations for dummies (although I guess it doesn't really matter)
+    is_dummy = (np.unique(covars[:,v].astype(np.float32))==np.array([0.,1.]))   
+    if isinstance(is_dummy,bool):
+        if is_dummy:
+            continue
+    else:
+        if is_dummy.all():
+            continue        
+    covars[:,v] = (covars[:,v] - np.mean(covars[:,v]))/np.std(covars[:,v])
+
+
+covars=np.delete(covars,collin_vars,axis=1)
+
 
 #plt.scatter(z,p)
 #plt.show()
@@ -38,7 +62,7 @@ x = np.array(settlers.iloc[:,17:38])
 #begin to define some of the parameters for the MDN
 num_layers = 1 #number of intermediate layers; fixed to 1 layer
 num_components = 3 #the number of mixture components; later try to tune on them
-num_inputs = x.shape[1]+z.shape[1] #the number of input features
+num_inputs = covars.shape[1] #the number of input features
 #num_nodes =num_inputs  #the number of nodes in the hidden layer
 num_nodes=10
 num_output = num_components*3
@@ -101,26 +125,15 @@ s.run(tf.global_variables_initializer())
 
 print s.run(W_output)
 print "training..."
-num_iters = 10000 #the number of gradient descents
+num_iters = 20000 #the number of gradient descents
 losses = np.zeros(num_iters)
-covars =  np.concatenate((z, x), axis=1)
-#stdize all non-dummy variables to have mean 0 and SD 1
-for v in range(covars.shape[1]):
-    is_dummy = (np.unique(covars[:,v].astype(np.float32))==np.array([0.,1.]))
-    if isinstance(is_dummy,bool):
-        if is_dummy:
-            continue
-    else:
-        if is_dummy.all():
-            continue
-    covars[:,v] = (covars[:,v] - np.mean(covars[:,v]))/np.std(covars[:,v])
 
 for i in range(num_iters):
   losses[i] = s.run(loss,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
-  #s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
+  s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
   #SGD
-  subsamp = np.random.choice(num_obs,num_obs/10)
-  s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp].astype(np.float32)})
+  #subsamp = np.random.choice(num_obs,num_obs/10)
+  #s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp].astype(np.float32)})
 
 plt.plot(range(num_iters),losses)
 plt.show()
