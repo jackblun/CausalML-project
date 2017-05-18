@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
-
+np.random.seed(1923)
 
 
 datadir = '/home/luis/CausalML-project/Data/'
@@ -66,7 +66,7 @@ num_inputs = covars.shape[1] #the number of input features
 #num_nodes =num_inputs  #the number of nodes in the hidden layer
 num_nodes=10
 num_output = num_components*3
-
+tf.set_random_seed(1923)
 
 #initialize weights and biases for input->hidden layer
 W_input = tf.Variable(tf.random_uniform(shape=[num_inputs,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32))
@@ -125,21 +125,43 @@ s.run(tf.global_variables_initializer())
 
 print "training..."
 num_iters = 20000 #the number of gradient descents
-losses = np.zeros(num_iters)
+losses = []
 
+tol = 1e-8 #tolerance of improvement of L-hood
 for i in range(num_iters):
-  losses[i] = s.run(loss,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
   #s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
   #SGD
   subsamp = np.random.choice(num_obs,num_obs/10)
   s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp].astype(np.float32)})
+  losses.append(s.run(loss,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)}))
+  if (i > 100):
+    if (np.max(losses[i-101:i-1]) - losses[i] < tol):
+        print "exiting after " + str(i) + " iterations due to no improvement"
+        break
 
-plt.plot(range(num_iters),losses)
+plt.plot(range(len(losses)),losses)
 plt.show()
-#try a stochastic version where we do batches of 10
-
-
-
-mixprobs,mixmeans,mixsds=s.run(get_params(output_layer),feed_dict={inputs:covars.astype(np.float32)})
 ######
-#look at how we did
+#look at how we did by sampling from the distro
+mixprobs,mixmeans,mixsds=s.run(get_params(output_layer),feed_dict={inputs:covars.astype(np.float32)})
+samps_per_obs = 10
+
+samples = np.zeros(shape=[num_obs*samps_per_obs,2])
+index=0
+for i in range(num_obs):
+    for j in range(samps_per_obs):
+        distchoice = np.where(np.random.uniform()<=np.cumsum(mixprobs[i,:]))[0][0]
+        samples[index,1] = z[i,0]
+        samples[index,0] = np.random.normal(loc=mixmeans[i,distchoice],scale=mixsds[i,distchoice])
+        index +=1
+
+
+#a simple histogram
+plt.hist(p,color='b',normed=True,alpha=.3)
+plt.hist(samples[:,0],color='r',normed=True,alpha=.3)
+plt.show()
+#a scatterplot of the instrument vs the policy variable
+plt.scatter(samples[samples[:,1]!=0,1],samples[samples[:,1]!=0,0],color='r', alpha=.9, label='Simulated Data')
+plt.scatter(z[z[:,0]!=0,0],p[z[:,0]!=0],color='b',alpha=.9,label='Actual Data')
+plt.legend()
+plt.show()
