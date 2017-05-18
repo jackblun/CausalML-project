@@ -117,27 +117,25 @@ def tf_mixlhood(probs,means,sds,y):
 
 loss = tf_mixlhood(mixprobs, mixmeans, mixsds, endog)
 #trainer = tf.train.AdamOptimizer().minimize(loss)
-trainer = tf.train.GradientDescentOptimizer(learning_rate=.01).minimize(loss)
+trainer = tf.train.GradientDescentOptimizer(learning_rate=.001).minimize(loss)
 #trainer = tf.train.GradientDescentOptimizer(learning_rate=1)
 #trainer_calcGrad = trainer.compute_gradients()
 s = tf.InteractiveSession()
 s.run(tf.global_variables_initializer())
 
-print s.run(W_output)
 print "training..."
 num_iters = 20000 #the number of gradient descents
 losses = np.zeros(num_iters)
 
 for i in range(num_iters):
   losses[i] = s.run(loss,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
-  s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
+  #s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
   #SGD
-  #subsamp = np.random.choice(num_obs,num_obs/10)
-  #s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp].astype(np.float32)})
+  subsamp = np.random.choice(num_obs,num_obs/10)
+  s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp].astype(np.float32)})
 
 plt.plot(range(num_iters),losses)
 plt.show()
-print s.run(W_output)
 #try a stochastic version where we do batches of 10
 
 
