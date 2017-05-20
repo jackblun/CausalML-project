@@ -121,13 +121,14 @@ trainer = tf.train.GradientDescentOptimizer(learning_rate=.001).minimize(loss)
 #trainer = tf.train.GradientDescentOptimizer(learning_rate=1)
 #trainer_calcGrad = trainer.compute_gradients()
 s = tf.InteractiveSession()
+tf.set_random_seed(1923)
 s.run(tf.global_variables_initializer())
 
 print "training..."
 num_iters = 20000 #the number of gradient descents
 losses = []
 
-tol = 1e-8 #tolerance of improvement of L-hood
+tol = 1e-6 #tolerance of improvement of L-hood
 for i in range(num_iters):
   #s.run(trainer,feed_dict={inputs: covars.astype(np.float32), endog: p.astype(np.float32)})
   #SGD
@@ -159,9 +160,11 @@ for i in range(num_obs):
 #a simple histogram
 plt.hist(p,color='b',normed=True,alpha=.3)
 plt.hist(samples[:,0],color='r',normed=True,alpha=.3)
+plt.savefig(datadir + 'hist_endog.pdf')
 plt.show()
 #a scatterplot of the instrument vs the policy variable
 plt.scatter(samples[samples[:,1]!=0,1],samples[samples[:,1]!=0,0],color='r', alpha=.9, label='Simulated Data')
 plt.scatter(z[z[:,0]!=0,0],p[z[:,0]!=0],color='b',alpha=.9,label='Actual Data')
 plt.legend()
+plt.savefig(datadir + 'endogVinstrument.pdf')
 plt.show()
