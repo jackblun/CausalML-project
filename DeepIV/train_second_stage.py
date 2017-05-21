@@ -131,6 +131,8 @@ num_nodes=5
 num_inputs = features_second.shape[1] #the number of input features
 num_output = 1 # output layer (currently just one since outcome is one variable)
 num_obs = y.shape[0]
+
+
 #initialize weights and biases for input->hidden layer
 W_input = tf.Variable(tf.random_uniform(shape=[num_inputs,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='W_in')
 b_input = tf.Variable(tf.random_uniform(shape=[1,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='B_in')
@@ -164,36 +166,48 @@ trainer = tf.train.GradientDescentOptimizer(learning_rate=.001)
 
 s = tf.InteractiveSession()
 s.run(tf.global_variables_initializer())
-test_y = s.run(outcome_layer,feed_dict={inputs: features_second.astype(np.float32)})
-test_grad = s.run(nn_gradients,feed_dict={inputs: features_second.astype(np.float32)})
-L=secondstage_loss(y,outcome_layer,s,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],B=10)
+
+#testing functions
+#test_y = s.run(outcome_layer,feed_dict={inputs: features_second.astype(np.float32)})
+#test_grad = s.run(nn_gradients,feed_dict={inputs: features_second.astype(np.float32)})
+#L=secondstage_loss(y,outcome_layer,s,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],B=10)
 
 #test out the gradient fcn
-ind=2
-obs_feat= features_second[ind,:]
-obs_y = y[ind]
-pi_i = first_mdn['pi'][ind,:]
-mu_i = first_mdn['mu'][ind,:]
-sd_i = first_mdn['sigma'][ind,:]
+#ind=2
+#obs_feat= features_second[ind,:]
+#obs_y = y[ind]
+#pi_i = first_mdn['pi'][ind,:]
+#mu_i = first_mdn['mu'][ind,:]
+#sd_i = first_mdn['sigma'][ind,:]
 #gg = ind_secondstage_loss_gradient(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,nn_gradients,s)
 
 
 #apply_grad = trainer.apply_gradients(placeholder_gradients)
 
+
 grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
 
+validation_losses=[]
+validation_indices = np.random.choice(num_obs,num_obs/5)
+train_indices = np.ones(len(p), np.bool)
+train_indices[validation_indices]=0
+y_validation = y[validation_indices]
+features_validation = features_second[validation_indices,:]
+y_train = p[train_indices]
+features_train  = features_second[train_indices,:]
+num_train_obs = sum(train_indices)
 print "training..."
-num_iters = 1000
+num_iters = 10000
 losses=[]
 for i in range(num_iters):
     if i%100==0:
         print i
-    g_ind=np.random.choice(num_obs,1)[0]
-    obs_feat= features_second[g_ind,:]
-    obs_y = y[g_ind]
-    pi_i = first_mdn['pi'][g_ind,:]
-    mu_i = first_mdn['mu'][g_ind,:]
-    sd_i = first_mdn['sigma'][g_ind,:]
+    g_ind=np.random.choice(num_train_obs,1)[0]
+    obs_feat= features_second[train_indices,:][g_ind,:]
+    obs_y = y[train_indices][g_ind]
+    pi_i = first_mdn['pi'][train_indices,:][g_ind,:]
+    mu_i = first_mdn['mu'][train_indices,:][g_ind,:]
+    sd_i = first_mdn['sigma'][train_indices,:][g_ind,:]
     #reshape everything so treated as 2d
     for v in [obs_y, obs_feat, pi_i, mu_i ,sd_i]:
         v.shape = [1,len(v)]
@@ -206,8 +220,18 @@ for i in range(num_iters):
         grad_index+=1
     s.run(trainer.apply_gradients(grad_var_pairs),feed_dict=grad_dict)
     #the gradients of the output layer w.r.t. network parameters
-    loss=secondstage_loss(y,outcome_layer,s,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],B=10)
-    losses.append(loss)
+    if i%10==0:
+        loss=secondstage_loss(y[validation_indices],outcome_layer,s,\
+            features_second[validation_indices,:], \
+            first_mdn['pi'][validation_indices,:], \
+            first_mdn['mu'][validation_indices,:], \
+            first_mdn['sigma'][validation_indices,:],B=100)
+        validation_losses.append(loss)
+        if len(validation_losses) > 5:
+            if max(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
+                print "Exiting at iteration " + str(i) + " due to increase in validation error." 
+                break
     #print "----------"
 
-plt.plot(range(len(losses)),losses)
+plt.plot(range(len(validation_losses)),validation_losses)
+plt.show()
