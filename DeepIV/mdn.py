@@ -196,16 +196,29 @@ def cv_MDN(p,covars, \
 
 
 ######
+#sample from mixture density network given NN output parameters
+#return nxB matrix of samples , where n is num obs, and B is num sims
+def sim_mdn(mixprobs,mixmeans,mixsds,num_sims=10, seed=None):
+    if seed!=None:
+        np.random.seed(seed)
+    num_obs = mixprobs.shape[0]
+    samples = np.zeros(shape=[num_obs,num_sims])
+    for i in range(num_obs):
+        for j in range(num_sims):
+            distchoice = np.random.choice(a=range(mixprobs.shape[1]),p=mixprobs[i,:])
+            samples[i,j] = np.random.normal(loc=mixmeans[i,distchoice],scale=mixsds[i,distchoice])
+    return samples
+ 
+######
 #look at how we did by sampling from the distro
 #and plotting some data
-def sim_mdn(p,z,covars,mixprobs,mixmeans,mixsds,figdir='', seed=1992):
+def plot_mdn_sim(p,z,covars,mixprobs,mixmeans,mixsds,num_sims=10,figdir='', seed=1992):
     np.random.seed(seed)
     num_obs = p.shape[0]
-    samps_per_obs = 10
-    samples = np.zeros(shape=[num_obs*samps_per_obs,2])
+    samples = np.zeros(shape=[num_obs*num_sims,2])
     index=0
     for i in range(num_obs):
-        for j in range(samps_per_obs):
+        for j in range(num_sims):
             distchoice = np.where(np.random.uniform()<=np.cumsum(mixprobs[i,:]))[0][0]
             samples[index,1] = z[i]
             samples[index,0] = np.random.normal(loc=mixmeans[i,distchoice],scale=mixsds[i,distchoice])

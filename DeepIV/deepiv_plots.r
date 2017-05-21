@@ -14,5 +14,7 @@ cv.first$finite = is.finite(cv.first$LL)
 
 cv.first$LL[!cv.first$finite]=NA
 ggplot(data=cv.first[cv.first$comps>=1,],aes(x=nodes,y=LL,colour=factor(comps))) +geom_point(alpha=.7) +
-  ggtitle('Test CV Neg LL over node / mixture choices with Local Smoothers')+scale_colour_discrete(name='# of Normal Mixtures') +geom_smooth(se=FALSE)
+  ggtitle('Test CV over node / mixture choices with Local Smoothers')+scale_colour_discrete(name='# of Normal Mixtures') +geom_smooth(fill=NA) +
+  xlab('# of Hidden Layer Nodes') + ylab('Negative Log-Likelihood')
 ggsave('/home/luis/CausalML-project/DeepIV/CV_1stStage_graph.pdf')
+

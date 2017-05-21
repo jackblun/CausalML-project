@@ -97,5 +97,5 @@ np.savez(gitdir + 'DeepIV/opt_mdn_ests' ,W_in=W_in_final ,B_in=B_in_final, W_out
 
 #finally, simulate the data (only for obs with nonmissing instruments)
 nomiss_z = np.array(settlers['mi_logem4']==0)
-mdn.sim_mdn(p[nomiss_z],z[nomiss_z,0],covars[nomiss_z,:], \
+mdn.plot_mdn_sim(p[nomiss_z],z[nomiss_z,0],covars[nomiss_z,:], \
     mixprobs[nomiss_z,:],mixmeans[nomiss_z,:],mixsds[nomiss_z,:],figdir = '/home/luis/CausalML-project/DeepIV/')
