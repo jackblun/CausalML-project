@@ -61,9 +61,9 @@ def process_features(features):
 #probs/means/sds1 are the first stage cond. distro parameters,
 #B is the number of simulations per obs
 #p_index is the column index of the policy variable we simulate in the feature matrix
-def secondstage_loss(outcome,outcome_dnn,inputs,session,features2,probs1,means1,sds1,B=1000,p_index=0):
+def secondstage_loss(outcome,outcome_dnn,inputs,session,features2,probs1,means1,sds1,p_mean,p_sd,B=1000,p_index=0):
     mc_outcomes = np.zeros(shape = (outcome.shape[0],B))
-    mc_policy = mdn.sim_mdn(probs1,means1,sds1,num_sims=B)
+    mc_policy = (mdn.sim_mdn(probs1,means1,sds1,num_sims=B) - p_mean)/p_sd
     temp_features = features2
     for b in range(B):
         temp_features[:,p_index] = mc_policy[:,b]
@@ -84,12 +84,12 @@ def secondstage_loss(outcome,outcome_dnn,inputs,session,features2,probs1,means1,
 #currently accepts just one observation 
 #NOT FINISHED; SEE BELOW WHERE B=1 AND N=1
 def ind_secondstage_loss_gradient(outcome,features2,pi1,mu1,sigma1, \
-        outcome_dnn,inputs,grad_fcn,session,p_index=0):
+        outcome_dnn,inputs,grad_fcn,session,p_mean,p_sd,p_index=0,):
     #correct one obs issue w/ array instead of mat
     #print pi1.shape
-    p1 = mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1)
+    p1 = (mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1) - p_mean)/p_sd
     #print pi1.shape
-    p2 = mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1)
+    p2 = (mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1) - p_mean)/p_sd
     tempfeat_1 = features2
     tempfeat_2 = features2
     tempfeat_1[:,p_index] = p1
@@ -127,10 +127,12 @@ def ind_secondstage_loss_gradient(outcome,features2,pi1,mu1,sigma1, \
 #if this must be changed, additional arg is available (p_index denotes col to train)
 #pi,mu,sigma: the rows of each individual's 1st stage distribution of the endogenous variable (expressed as mix of normals)
 #num_nodes: the number of nodes in the hidden layer
-def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index=0):
+def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0):
     if seed!=None:
-        np.random.seed(seed)       
-    #some test code below
+        np.random.seed(seed)  
+    else:
+        seed=9 #for the tf calls     
+
     num_inputs = features_second.shape[1] #the number of input features
     num_output = 1 # output layer (currently just one since outcome is one variable)
     num_obs = y.shape[0]
@@ -165,7 +167,7 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index
     s = tf.InteractiveSession()
     s.run(tf.global_variables_initializer())
 
-
+    #break up validation/training data
     validation_losses=[]
     validation_indices = np.random.choice(num_obs,num_obs/5)
     train_indices = np.ones(len(y), np.bool)
@@ -179,7 +181,7 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index
     num_iters = 10000
     for i in range(num_iters):
         if i%100==0:
-            print "iteration" + str(i)
+            print "     iteration: " + str(i)
         #extract observation features for SGD
         g_ind=np.random.choice(num_train_obs,1)[0]
         obs_feat= features_second[train_indices,:][g_ind,:]
@@ -191,7 +193,7 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index
         for v in [obs_y, obs_feat, pi_i, mu_i ,sd_i]:
             v.shape = [1,len(v)]
 
-        stoch_grad = ind_secondstage_loss_gradient(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,inputs,nn_gradients,s)
+        stoch_grad = ind_secondstage_loss_gradient(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,inputs,nn_gradients,s,p_mean,p_sd)
         grad_dict={}
         grad_index=0
         for theta in [g_W_in,g_b_in,g_W_out,g_b_out]:
@@ -204,7 +206,8 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index
                 features_second[validation_indices,:], \
                 pi[validation_indices,:], \
                 mu[validation_indices,:], \
-                sigma[validation_indices,:],B=100)
+                sigma[validation_indices,:], \
+                p_mean,p_sd,B=100)
             validation_losses.append(loss)
             if len(validation_losses) > 5:
                 if max(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
@@ -217,4 +220,152 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,seed=None,p_index
     B_in_final = s.run(b_input)
     W_out_final = s.run(W_output)
     B_out_final = s.run(b_output)
+    s.close()
     return [W_in_final, B_in_final, W_out_final,B_out_final]
+
+def cv_second_stage(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0,folds=5):
+    if seed!=None:
+        np.random.seed(seed)  
+    else:
+        seed=9 #for the tf calls     
+    #some test code below
+    num_inputs = features_second.shape[1] #the number of input features
+    num_output = 1 # output layer (currently just one since outcome is one variable)
+    num_obs = y.shape[0]
+
+    #create folds
+    rng_orders = np.argsort(np.random.uniform(size=num_obs))
+    foldgroups = np.zeros(num_obs)
+    for k in range(1,folds+1):
+        group_obs = (rng_orders >= (k-1)*num_obs/folds) & (rng_orders <(k)*num_obs/folds)
+        foldgroups[group_obs]=k
+    #train / test for each fold
+    test_losses=[]
+    for k in range(1,folds+1):
+        #print 'fold=' +str(k)
+        #split up train/test samples
+        y_train = y[foldgroups!=k]
+        features_train = features_second[foldgroups!=k,:]
+        pi_train = pi[foldgroups!=k,:]
+        mu_train = mu[foldgroups!=k,:]
+        sigma_train=sigma[foldgroups!=k,:]
+
+        y_test = y[foldgroups==k]
+        features_test = features_second[foldgroups==k,:]
+        pi_test = pi[foldgroups==k,:]
+        mu_test = mu[foldgroups==k,:]
+        sigma_test=sigma[foldgroups==k,:]
+
+        num_obs_train = y_train.shape[0]
+
+
+        #initialize weights and biases for input->hidden layer
+        W_input = tf.Variable(tf.random_uniform(shape=[num_inputs,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='W_in')
+        b_input = tf.Variable(tf.random_uniform(shape=[1,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='B_in')
+        #initialize weights and biases for hidden->output layer
+        W_output = tf.Variable(tf.random_uniform(shape=[num_nodes,num_output],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='W_out')
+        b_output = tf.Variable(tf.random_uniform(shape=[1,num_output],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed),name='B_out')
+        #instantiate data vars
+        inputs = tf.placeholder(dtype=tf.float32, shape=[None,num_inputs], name="inputs")
+        outcome = tf.placeholder(dtype=tf.float32, shape=[None,1], name="outcome")
+        #define the function for the hidden layer
+        #use canonical tanh function for intermed, simple linear combo for final layer
+        hidden_layer = tf.nn.tanh(tf.matmul(inputs, W_input) + b_input)
+        outcome_layer = tf.matmul(hidden_layer,W_output) + b_output
+        #the gradients of the output layer w.r.t. network parameters
+        nn_gradients = tf.gradients(outcome_layer, [W_input, b_input,W_output,b_output]) #the gradients of the DNN w.r.t. parameters
+        #placeholders for gradients I pass from numpy
+        g_W_in = tf.placeholder(dtype=tf.float32, shape=W_input.get_shape(), name="g_W_in")
+        g_b_in = tf.placeholder(dtype=tf.float32, shape=b_input.get_shape(), name="g_b_in")
+        g_W_out = tf.placeholder(dtype=tf.float32, shape=W_output.get_shape(), name="g_W_out")
+        g_b_out = tf.placeholder(dtype=tf.float32, shape=b_output.get_shape(), name="g_b_out")
+        #the gradient-parameter pairs for gradient computation/application
+        grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
+
+        #the optimizer
+        trainer = tf.train.GradientDescentOptimizer(learning_rate=.001)
+        #initialize tensorflow
+        s = tf.InteractiveSession()
+        s.run(tf.global_variables_initializer())
+
+        #split training further into validation and training data
+        validation_losses=[]
+        validation_indices = np.random.choice(num_obs_train,num_obs_train/5)
+        train_indices = np.ones(len(y_train), np.bool)
+        train_indices[validation_indices]=0
+        
+        y_validation = y_train[validation_indices]
+        features_validation = features_train[validation_indices,:]
+        pi_validation = pi_train[validation_indices,:]
+        mu_validation = mu_train[validation_indices,:]
+        sigma_validation=sigma_train[validation_indices,:]
+        
+        y_train = y_train[train_indices]
+        features_train  = features_train[train_indices,:]
+        pi_train = pi_train[train_indices,:]
+        mu_train = mu_train[train_indices,:]
+        sigma_train=sigma_train[train_indices,:]
+        num_train_obs = sum(train_indices)
+
+        #print "training..."
+        num_iters = 10000
+        tol=1e-4
+        for i in range(num_iters):
+            #if i%100==0:
+            # print "     iteration: " + str(i)
+            #extract observation features for SGD
+            g_ind=np.random.choice(num_train_obs,1)[0]
+            obs_feat= features_train[g_ind,:]
+            obs_y = y_train[g_ind]
+            pi_i = pi_train[g_ind,:]
+            mu_i = mu_train[g_ind,:]
+            sd_i = sigma_train[g_ind,:]
+            #reshape everything so treated as 2d
+            for v in [obs_y, obs_feat, pi_i, mu_i ,sd_i]:
+                v.shape = [1,len(v)]
+            stoch_grad = ind_secondstage_loss_gradient(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,inputs,nn_gradients,s,p_mean,p_sd)
+            grad_dict={}
+            grad_index=0
+            for theta in [g_W_in,g_b_in,g_W_out,g_b_out]:
+                grad_dict[theta]=stoch_grad[grad_index]
+                grad_index+=1
+            s.run(trainer.apply_gradients(grad_var_pairs),feed_dict=grad_dict)
+            #the gradients of the output layer w.r.t. network parameters
+            if i%10==0:
+                loss=secondstage_loss(y_validation,outcome_layer,inputs,s,\
+                    features_validation, \
+                    pi_validation, \
+                    mu_validation, \
+                    sigma_validation, \
+                    p_mean,p_sd,B=100)
+                validation_losses.append(loss)
+                if len(validation_losses) > 5:
+                    if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)]) < validation_losses[len(validation_losses)-1]:
+                        print "--------------------------"
+                        print "Exiting at iteration " + str(i) + " due to increase in validation error." 
+                        break
+        test_loss = secondstage_loss(y_test,outcome_layer,inputs,s,\
+                    features_test, \
+                    pi_test, \
+                    mu_test, \
+                    sigma_test, \
+                    p_mean,p_sd,B=100)
+        test_losses.append(test_loss)
+        s.close()
+        print "completed fold " + str(k) + ' for n=' + str(num_nodes)
+        print "--------------"
+
+    return test_losses
+
+def cv_mp_second_stage(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds,filename):
+    test_losses = cv_second_stage(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds)
+    meanerr = np.mean(test_losses)
+    sderr = np.std(test_losses)
+    f = open(filename,'w')
+    f.write('node,mean,se \n')
+    f.write( str(num_nodes) + ',' +str(meanerr) + ',' + str(sderr) )
+    f.close()
+    print "**********************"
+    print "node=" + str(num_nodes) + "; mean test err=" + str(meanerr) + "; sd test err=" + str(sderr)
+    print "***********************"
+    return [num_nodes,test_losses]

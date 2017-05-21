@@ -1,0 +1,4 @@
+
+test MSE: 1.05727315379
+test SD of MSE: 0.226313133102
+node count: 2

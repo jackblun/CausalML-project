@@ -32,7 +32,7 @@ mi_z = np.array(settlers.loc[:,'mi_logem4'])
 mi_z.shape = [mi_z.shape[0],1]
 all_covars=np.r_[1:3, 7:8,10:52, 54,58:84]
 x = settlers.iloc[:,all_covars] 
-
+folds=5
 
 features_first =  np.concatenate((z, x), axis=1) #combine x + z
 #transform the variables exactly as we did for first stage estimation of NN
@@ -52,41 +52,21 @@ features_second,feature2_means,feature2_sds,collin_vars2 = deepiv.process_featur
 features_second=np.delete(features_second,collin_vars2,axis=1)
 
 
-#test the function
-#pi,m,s = deepiv.predict_1stStage_cond_dist(features_first, first_mdn['W_in'], \
-#        first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'])
-
-
-#params=deepiv.train_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=5,p_mean=p_mean,p_sd=p_sd)
-#deepiv.cv_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=5,p_mean=p_mean,p_sd=p_sd)
-#y_hat =   np.dot(np.tanh(np.dot(features_second,params[0]) + params[1]),params[2]) + params[3]
-#plt.scatter(y,y_hat)
-#plt.show()
-#plt.hist(y_hat,alpha=.3, color='r',label='predicted y')
-#plt.hist(y,color='b',alpha=.3,label='true y')
-#plt.legend()
-#plt.show()
-
 #try to multithread it?
-
 noderange = range(1,features_second.shape[0])
+fprename = gitdir + 'DeepIV/cv_mp_output/node'
+#arglist = []
+#for n in noderange:
+    #arglist.append( (y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=n,p_mean,p_sd,folds) )
 
-results = mp.Queue()
-processes = [mp.Process(target=deepiv.cv_mp_second_stage, \
-    args=(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=n,p_mean=p_mean,p_sd=p_sd,folds=5)) for n in noderange ]
+np.random.seed(1992)
+if __name__ == '__main__':
+    pool=mp.Pool(processes=5)
+    results = [pool.apply_async(deepiv.cv_mp_second_stage, \
+    args=(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],n,p_mean,p_sd,None,0,folds,fprename + str(n) + '.txt')) for n in noderange ]
+    output = [p.get() for p in results]
+    print output
 
+#n=2
 
-
-
-cv_output = pd.DataFrame(index=noderange,columns=['nodes','err_mean','err_se'])
-for n in range(1,features_second.shape[0]):
-    print "node count : " + str(n)
-    losses = deepiv.cv_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=n,p_mean=p_mean,p_sd=p_sd,folds=5)
-    cv_output.loc[n,'nodes'] = n
-    cv_output.loc[n,'err_mean'] = np.mean(losses)
-    cv_output.loc[n,'err_se'] = np.std(losses)
-    print "test MSE: " + str(np.mean(losses))
-    print "test SD of MSE: " + str(np.std(losses))
-    cv_output.to_csv(gitdir + 'DeepIV/CV_second_stage.csv')
-
-cv_output.to_csv(gitdir + 'DeepIV/CV_first_stage.csv')
+#deepiv.cv_mp_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],n,p_mean,p_sd,None,0,folds,fprename + str(n) + '.txt'))
