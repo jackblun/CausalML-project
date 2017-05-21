@@ -50,10 +50,11 @@ features_second=np.delete(features_second,collin_vars2,axis=1)
 
 
 #test the function
-pi,m,s = deepiv.predict_1stStage_cond_dist(features_first, first_mdn['W_in'], \
-        first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'])
+#pi,m,s = deepiv.predict_1stStage_cond_dist(features_first, first_mdn['W_in'], \
+#        first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'])
 
 
+deepiv.train_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],num_nodes=5)
 
 
 #estimate loss function (for validation training)
