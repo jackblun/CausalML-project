@@ -1,7 +1,6 @@
 #file:train_second_stage.py
-#using the DNN trained in the first stage as an input, estimate
-#the equation relating the covariates to the structural equation for outcome
-
+#train the second stage over the node choices 
+# with the multiprocessing library to parallelize the tasks
 import math
 import numpy as np 
 import pandas as pd
@@ -53,7 +52,7 @@ features_second=np.delete(features_second,collin_vars2,axis=1)
 
 
 #try to multithread it?
-noderange = range(1,features_second.shape[0])
+noderange = range(1,features_second.shape[1]+1)
 fprename = gitdir + 'DeepIV/cv_mp_output/node'
 #arglist = []
 #for n in noderange:
@@ -67,6 +66,18 @@ if __name__ == '__main__':
     output = [p.get() for p in results]
     print output
 
-#n=2
+cv_ests = []
+for n in noderange:
+    fname=fprename + str(n) + '.txt'
+    cvout = pd.read_csv(fname)
+    cv_ests.append(cvout)
 
+cv_df = pd.concat(cv_ests)
+cv_df.to_csv(gitdir + 'DeepIV/cv_mp_output/cv_secondstage.csv',index=False)
 #deepiv.cv_mp_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],n,p_mean,p_sd,None,0,folds,fprename + str(n) + '.txt'))
+opt_nodes = cv_df.sort_values(['mean']).iloc[0]
+opt_nodes = int(opt_nodes['node'])
+
+opt_params=deepiv.train_second_stage(y,features_second,first_mdn['pi'],first_mdn['mu'],first_mdn['sigma'],opt_nodes,p_mean,p_sd,seed=1992,p_index=0)
+np.savez(gitdir + 'DeepIV/opt_2ndStage_ests' ,W_in=opt_params[0] ,B_in=opt_params[1], W_out=opt_params[2],B_out=opt_params[3],
+    p_mean=p_mean,p_sd=p_sd,stdizing_means=feature2_means,stdizing_sds=feature2_sds,excluded_vars = collin_vars2)

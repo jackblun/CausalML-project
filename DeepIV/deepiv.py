@@ -22,6 +22,60 @@ def predict_1stStage_cond_dist(features,W_features,B_features,W_hidden,B_hidden)
     return probs,means,sds
 
 
+#given estimated network parameters
+#sample from the second stage network (for use on left-out sample)
+#to get instruments and treatments given network parameters
+#p_index denotes location in features_2 of the policy variable
+def predict_2ndStage_cond_dist(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
+                               features_2,W_features_2,B_features_2,W_hidden_2,B_hidden_2,p_mean,p_sd, B=1000,p_index=0):
+    num_obs = features_1.shape[0]
+    hidden_1 = np.tanh(np.dot(features_1,W_features_1) + B_features_1)
+    distparams = np.dot(hidden_1,W_hidden_1) + B_hidden_1
+    probs,means,sds = np.split(distparams,3,axis=1)
+    sds = np.exp(sds)
+    probs = np.exp(probs)/np.sum(np.exp(probs),axis=1)[:,np.newaxis]
+
+    #calculate predicted y given observed p
+    hidden_2 =  np.tanh(np.dot(features_2,W_features_2) + B_features_2)
+    treatments = np.dot(hidden_2,W_hidden_2) + B_hidden_2
+    #calculate predicted y given 1st stage mdn
+    instruments = np.zeros(shape=[num_obs,B])
+    temp_features_2 = features_2
+    #sample from the policy fcn
+    for j in range(B):
+        distchoice =   (np.random.rand(num_obs,1)<=probs.cumsum(axis=1)).argmax(axis=1)
+        p_samp= np.random.normal(loc=means[np.arange(num_obs),distchoice],scale=sds[np.arange(num_obs),distchoice])
+        p_samp = (p_samp - p_mean)/p_sd
+        temp_features_2[:,p_index] = p_samp 
+        instruments[:,j] = (np.dot(np.tanh(np.dot(temp_features_2,W_features_2) + B_features_2),W_hidden_2) + B_hidden_2).flatten()
+
+    instruments = np.mean(instruments,axis=1)[:,np.newaxis]
+
+    return [treatments,instruments]
+
+#given treatments,instruments (as defined in DeepIV paper) and outcomes,
+#from a left-out validation sample, calculate the treatment coefficients via 2SLS
+#and 
+def estimate_iv_coefs(y,treatment,instruments):
+    num_validation_obs = y.shape[0]
+    H =  np.concatenate((np.ones([num_validation_obs,1]), treatment), axis=1)
+    H_hat =  np.concatenate((np.ones([num_validation_obs,1]), instruments), axis=1)
+
+    H_hatxH_inv = np.linalg.inv(np.dot(H_hat.transpose(),H))
+    H_hatxH_hat_inv =  np.linalg.inv(np.dot(H_hat.transpose(),H_hat))
+    beta = np.dot( H_hatxH_inv, np.dot(H_hat.transpose(),y) ) 
+    D_res = np.zeros([num_validation_obs,num_validation_obs])
+    np.fill_diagonal(D_res,(np.dot(H,beta) - y)**2)
+    V_beta = np.dot(np.dot(H_hat.transpose(),D_res),H_hat) #the inner filling of the sandwich
+    V_beta  = np.dot(np.dot(H_hatxH_hat_inv,V_beta ),H_hatxH_hat_inv) #full variance
+    print "--------------------"
+    print "Treatment Effects of Intercept+ NN output node(s):"
+    print beta
+    print "Variance of Average Treatment Effects:"
+    print V_beta
+    return beta,V_beta
+
+
 #stdize variables that are not dummies to be stdizing mean 0 and sd 1,
 #and remove all covariates that have no variation in the data
 #so that all behave well when fed into DNN
@@ -210,7 +264,7 @@ def train_second_stage(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=
                 p_mean,p_sd,B=100)
             validation_losses.append(loss)
             if len(validation_losses) > 5:
-                if max(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
+                if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
                     print "Exiting at iteration " + str(i) + " due to increase in validation error." 
                     break
     plt.plot(range(len(validation_losses)),validation_losses)

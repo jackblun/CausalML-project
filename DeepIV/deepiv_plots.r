@@ -18,3 +18,7 @@ ggplot(data=cv.first[cv.first$comps>=1,],aes(x=nodes,y=LL,colour=factor(comps)))
   xlab('# of Hidden Layer Nodes') + ylab('Negative Log-Likelihood')
 ggsave('/home/luis/CausalML-project/DeepIV/CV_1stStage_graph.pdf')
 
+cv.second <- read.csv('/home/luis/CausalML-project/DeepIV/cv_mp_output/cv_secondstage.csv')
+ggplot(data=cv.second,aes(x=node,y=mean)) + geom_line()+ geom_ribbon(aes(ymin=mean-se, ymax=mean+se),fill=NA,colour='red',linetype='dashed',alpha=0.3) +
+ylab('MSE') + xlab('# of Hidden Layer Nodes')  + ggtitle('Test CV over node choices for second stage +/- CV SE') + coord_cartesian(ylim = c(0,3))
+ggsave('/home/luis/CausalML-project/DeepIV/CV_2ndStage_graph.pdf')
