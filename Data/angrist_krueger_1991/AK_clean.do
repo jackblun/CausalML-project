@@ -13,8 +13,8 @@ clear all
 set more off
 
 // Change to working directory (Dropbox folder)
-cd "C:\Users\Jack\Documents\Git\Causal-ML-project\Data\angrist_krueger_1991" // Jack
-
+//cd "C:\Users\Jack\Documents\Git\Causal-ML-project\Data\angrist_krueger_1991" // Jack
+cd  "/home/luis/CausalML-project/Data/angrist_krueger_1991/" //luis
 use "NEW7080.dta"
 rename v1 AGE
 rename v2 AGEQ

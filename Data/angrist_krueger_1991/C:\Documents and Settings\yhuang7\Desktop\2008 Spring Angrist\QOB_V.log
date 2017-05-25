@@ -1,0 +1,364 @@
+------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /home/luis/CausalML-project/Data/angrist_krueger_1991/C:\Documents and Settings\yhuang7\Desktop
+> \2008 Spring Angrist\QOB_V.log
+  log type:  text
+ opened on:  22 May 2017, 22:59:09
+
+. 
+. set mem 500m
+set memory ignored.
+    Memory no longer needs to be set in modern Statas; memory adjustments are performed on the fly
+    automatically.
+
+. use "C:\Documents and Settings\yhuang7\Desktop\2008 Spring Angrist\QOB_stata_data.dta"
+file C:\Documents and Settings\yhuang7\Desktop\2008 Spring Angrist\QOB_stata_data.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "/home/luis/CausalML-project/Data/angrist_krueger_1991/AK_clean.do"
+
+. *** Cleaning AK 1991***
+. * ECON 293 ML project
+. 
+. * Jack Blundell
+. * Stanford University
+. * Spring 2017
+. 
+. // see https://economics.mit.edu/faculty/angrist/data1/data/angkru1991 for data
+. 
+. clear matrix
+
+. clear mata
+
+. clear all
+
+. set more off
+
+. 
+. // Change to working directory (Dropbox folder)
+. //cd "C:\Users\Jack\Documents\Git\Causal-ML-project\Data\angrist_krueger_1991" // Jack
+. cd  "/home/luis/CausalML-project/Data/angrist_krueger_1991/" //luis
+/home/luis/CausalML-project/Data/angrist_krueger_1991
+
+. use "NEW7080.dta"
+
+. rename v1 AGE
+
+. rename v2 AGEQ
+
+. rename v4 EDUC
+
+. rename v5 ENOCENT
+
+. rename v6 ESOCENT
+
+. rename v9 LWKLYWGE
+
+. rename v10 MARRIED
+
+. rename v11 MIDATL
+
+. rename v12 MT
+
+. rename v13 NEWENG
+
+. rename v16 CENSUS
+
+. rename v18 QOB
+
+. rename v19 RACE
+
+. rename v20 SMSA
+
+. rename v21 SOATL
+
+. rename v24 WNOCENT
+
+. rename v25 WSOCENT
+
+. rename v27 YOB
+
+. drop v8
+
+. gen COHORT=20.29
+
+. replace COHORT=30.39 if YOB<=39 & YOB >=30
+(329,509 real changes made)
+
+. replace COHORT=40.49 if YOB<=49 & YOB >=40
+(486,926 real changes made)
+
+. replace AGEQ=AGEQ-1900 if CENSUS==80
+(816,435 real changes made)
+
+. gen AGEQSQ= AGEQ*AGEQ
+
+. 
+. ** Generate YOB dummies **********
+. gen YR20=0  
+
+. replace YR20=1 if YOB==1920  
+(23,725 real changes made)
+
+. replace YR20=1 if YOB==30 
+(33,602 real changes made)
+
+. replace YR20=1 if YOB==40 
+(38,218 real changes made)
+
+. gen YR21=0  
+
+. replace YR21=1 if YOB==1921  
+(24,978 real changes made)
+
+. replace YR21=1 if YOB==31
+(30,583 real changes made)
+
+. replace YR21=1 if YOB==41 
+(38,387 real changes made)
+
+. gen YR22=0  
+
+. replace YR22=1 if YOB==1922  
+(24,264 real changes made)
+
+. replace YR22=1 if YOB==32 
+(32,211 real changes made)
+
+. replace YR22=1 if YOB==42 
+(45,018 real changes made)
+
+. gen YR23=0  
+
+. replace YR23=1 if YOB==1923 
+(24,345 real changes made)
+
+. replace YR23=1 if YOB==33 
+(30,751 real changes made)
+
+. replace YR23=1 if YOB==43 
+(46,349 real changes made)
+
+. gen YR24=0  
+
+. replace YR24=1 if YOB==1924  
+(25,548 real changes made)
+
+. replace YR24=1 if YOB==34 
+(31,916 real changes made)
+
+. replace YR24=1 if YOB==44 
+(44,387 real changes made)
+
+. gen YR25=0  
+
+. replace YR25=1 if YOB==1925  
+(24,834 real changes made)
+
+. replace YR25=1 if YOB==35 
+(32,773 real changes made)
+
+. replace YR25=1 if YOB==45 
+(44,546 real changes made)
+
+. gen YR26=0  
+
+. replace YR26=1 if YOB==1926  
+(24,431 real changes made)
+
+. replace YR26=1 if YOB==36 
+(32,676 real changes made)
+
+. replace YR26=1 if YOB==46 
+(54,122 real changes made)
+
+. gen YR27=0  
+
+. replace YR27=1 if YOB==1927  
+(25,650 real changes made)
+
+. replace YR27=1 if YOB==37 
+(33,969 real changes made)
+
+. replace YR27=1 if YOB==47 
+(60,788 real changes made)
+
+. gen YR28=0  
+
+. replace YR28=1 if YOB==1928  
+(24,614 real changes made)
+
+. replace YR28=1 if YOB==38 
+(35,223 real changes made)
+
+. replace YR28=1 if YOB==48 
+(57,692 real changes made)
+
+. gen YR29=0  
+
+. replace YR29=1 if YOB==1929  
+(24,810 real changes made)
+
+. replace YR29=1 if YOB==39 
+(35,805 real changes made)
+
+. replace YR29=1 if YOB==49 
+(57,419 real changes made)
+
+. 
+. ** Generate QOB dummies ***********
+. gen QTR1=0
+
+. replace QTR1=1 if QOB==1
+(262,019 real changes made)
+
+. gen QTR2=0
+
+. replace QTR2=1 if QOB==2
+(255,733 real changes made)
+
+. gen QTR3=0
+
+. replace QTR3=1 if QOB==3
+(280,749 real changes made)
+
+. gen QTR4=0
+
+. replace QTR4=1 if QOB==4
+(265,133 real changes made)
+
+. 
+. ** Generate YOB*QOB dummies ********
+. gen QTR120= QTR1*YR20
+
+. gen QTR121= QTR1*YR21
+
+. gen QTR122= QTR1*YR22
+
+. gen QTR123= QTR1*YR23
+
+. gen QTR124= QTR1*YR24
+
+. gen QTR125= QTR1*YR25
+
+. gen QTR126= QTR1*YR26
+
+. gen QTR127= QTR1*YR27
+
+. gen QTR128= QTR1*YR28
+
+. gen QTR129= QTR1*YR29
+
+. 
+. gen QTR220= QTR2*YR20
+
+. gen QTR221= QTR2*YR21
+
+. gen QTR222= QTR2*YR22
+
+. gen QTR223= QTR2*YR23
+
+. gen QTR224= QTR2*YR24
+
+. gen QTR225= QTR2*YR25
+
+. gen QTR226= QTR2*YR26
+
+. gen QTR227= QTR2*YR27
+
+. gen QTR228= QTR2*YR28
+
+. gen QTR229= QTR2*YR29
+
+. 
+. gen QTR320= QTR3*YR20
+
+. gen QTR321= QTR3*YR21
+
+. gen QTR322= QTR3*YR22
+
+. gen QTR323= QTR3*YR23
+
+. gen QTR324= QTR3*YR24
+
+. gen QTR325= QTR3*YR25
+
+. gen QTR326= QTR3*YR26
+
+. gen QTR327= QTR3*YR27
+
+. gen QTR328= QTR3*YR28
+
+. gen QTR329= QTR3*YR29
+
+. 
+. keep if COHORT>30.00 & COHORT <30.40
+(734,125 observations deleted)
+
+. 
+. // Export to csv
+. 
+. outsheet * using AK1991.csv , comma 
+file AK1991.csv already exists
+r(602);
+
+end of do-file
+
+r(602);
+
+. tab RACE
+
+       RACE |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    302,596       91.83       91.83
+          1 |     26,913        8.17      100.00
+------------+-----------------------------------
+      Total |    329,509      100.00
+
+. tab COHORT
+
+     COHORT |      Freq.     Percent        Cum.
+------------+-----------------------------------
+      30.39 |    329,509      100.00      100.00
+------------+-----------------------------------
+      Total |    329,509      100.00
+
+. kdensity educ
+variable educ not found
+r(111);
+
+. kdensity EDUC
+
+. tab EDUC
+
+       EDUC |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        598        0.18        0.18
+          1 |        215        0.07        0.25
+          2 |        606        0.18        0.43
+          3 |      1,089        0.33        0.76
+          4 |      1,345        0.41        1.17
+          5 |      2,003        0.61        1.78
+          6 |      3,874        1.18        2.95
+          7 |      6,177        1.87        4.83
+          8 |     16,118        4.89        9.72
+          9 |     13,183        4.00       13.72
+         10 |     16,530        5.02       18.74
+         11 |     13,674        4.15       22.89
+         12 |    122,934       37.31       60.19
+         13 |     18,257        5.54       65.74
+         14 |     25,681        7.79       73.53
+         15 |      9,973        3.03       76.56
+         16 |     35,747       10.85       87.40
+         17 |     12,063        3.66       91.06
+         18 |     11,655        3.54       94.60
+         19 |      6,307        1.91       96.52
+         20 |     11,480        3.48      100.00
+------------+-----------------------------------
+      Total |    329,509      100.00
+
+. exit, clear

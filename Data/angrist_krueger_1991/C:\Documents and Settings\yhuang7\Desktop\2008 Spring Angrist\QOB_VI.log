@@ -1,0 +1,47 @@
+------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /home/luis/CausalML-project/Data/angrist_krueger_1991/C:\Documents and Settings\yhuang7\Desktop
+> \2008 Spring Angrist\QOB_VI.log
+  log type:  text
+ opened on:  22 May 2017, 22:58:57
+
+. 
+. set mem 500m
+set memory ignored.
+    Memory no longer needs to be set in modern Statas; memory adjustments are performed on the fly
+    automatically.
+
+. use "C:\Documents and Settings\yhuang7\Desktop\2008 Spring Angrist\QOB_stata_data.dta"
+file C:\Documents and Settings\yhuang7\Desktop\2008 Spring Angrist\QOB_stata_data.dta not found
+r(601);
+
+end of do-file
+
+r(601);
+
+. do "/home/luis/CausalML-project/Data/angrist_krueger_1991/QOB Table V.do"
+
+. ***********************************
+. **** QOB Table V
+. **** 
+. **** Yuqiao Huang
+. **** Date: May 5th 2008
+. ***********************************
+. clear
+
+. 
+. log using "C:\Documents and Settings\yhuang7\Desktop\2008 Spring Angrist\QOB_V.log", replace 
+log file already open
+r(604);
+
+end of do-file
+
+r(604);
+
+. log close _all
+      name:  <unnamed>
+       log:  /home/luis/CausalML-project/Data/angrist_krueger_1991/C:\Documents and Settings\yhuang7\Desktop
+> \2008 Spring Angrist\QOB_VI.log
+  log type:  text
+ closed on:  22 May 2017, 22:59:05
+------------------------------------------------------------------------------------------------------------
