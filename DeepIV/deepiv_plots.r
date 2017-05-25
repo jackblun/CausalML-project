@@ -43,4 +43,4 @@ ggplot(data=cv.first.AK.MN,aes(x=nodes,y=LL_mean)) +
 cv.second.AK <- read.csv('/home/luis/CausalML-project/DeepIV/AK/cv_mp_output/cv_secondstage.csv')
 ggplot(data=cv.second.AK,aes(x=node,y=mean)) + geom_line()+ geom_ribbon(aes(ymin=mean-se, ymax=mean+se),fill=NA,colour='red',linetype='dashed',alpha=0.3) +
   ylab('MSE') + xlab('# of Hidden Layer Nodes')  + ggtitle('Test CV over node choices for second stage +/- CV SE')
-ggsave('/home/luis/CausalML-project/DeepIV/CV_2ndStage_graph.pdf')
+ggsave('/home/luis/CausalML-project/DeepIV/AK/CV_2ndStage_graph.pdf')
