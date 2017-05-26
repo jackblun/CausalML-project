@@ -30,7 +30,7 @@ def predict_1stStage_cond_dist(features,W_features,B_features,W_hidden,B_hidden)
 #sample from the second stage network (for use on left-out sample)
 #to get instruments and treatments given network parameters
 #p_index denotes location in features_2 of the policy variable
-def predict_2ndStage_cond_dist(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
+def predict_2ndStage_cont(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
                                features_2,W_features_2,B_features_2,W_hidden_2,B_hidden_2,p_mean,p_sd, B=1000,p_index=0):
     num_obs = features_1.shape[0]
     hidden_1 = np.tanh(np.dot(features_1,W_features_1) + B_features_1)
@@ -57,21 +57,49 @@ def predict_2ndStage_cond_dist(features_1,W_features_1,B_features_1,W_hidden_1,B
 
     return [treatments,instruments]
 
+#given estimated network parameters
+#sample from the second stage network (for use on left-out sample)
+#to get instruments and treatments given network parameters
+#p_index denotes location in features_2 of the policy variable
+def predict_2ndStage_discrete(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
+                               features_2,W_features_2,B_features_2,W_hidden_2,B_hidden_2,p_range):
+    num_obs = features_1.shape[0]
+    hidden_1 = np.tanh(np.dot(features_1,W_features_1) + B_features_1)
+    P = np.dot(hidden_1,W_hidden_1) + B_hidden_1
+    P = np.exp(P)/np.sum(np.exp(P),axis=1)[:,np.newaxis]
+
+    #calculate predicted y given observed p
+    hidden_2 =  np.tanh(np.dot(features_2,W_features_2) + B_features_2)
+    treatments = np.dot(hidden_2,W_hidden_2) + B_hidden_2
+    #calculate predicted y given 1st stage mdn
+    instruments = np.zeros(shape=[num_obs,1])
+    temp_features = features_2
+    cats = range(P.shape[1]) # number of classes
+    #sample from the policy fcn
+    for c in cats:
+        temp_p  = np.zeros(shape=[len(cats),1])
+        temp_p[c] = 1
+        temp_features[:,p_range] = temp_p.flatten()
+        exp_y = (np.dot(np.tanh(np.dot(temp_features,W_features_2) + B_features_2),W_hidden_2) + B_hidden_2).flatten()
+        instruments = instruments + (P[:,c]*exp_y)[:,np.newaxis]
+    return [treatments,instruments]
+
 #given treatments,instruments (as defined in DeepIV paper) and outcomes,
 #from a left-out validation sample, calculate the treatment coefficients via 2SLS
 #and 
 def estimate_iv_coefs(y,treatment,instruments):
     num_validation_obs = y.shape[0]
-    H =  np.concatenate((np.ones([num_validation_obs,1]), treatment), axis=1)
-    H_hat =  np.concatenate((np.ones([num_validation_obs,1]), instruments), axis=1)
+    H =  np.concatenate((np.ones([num_validation_obs,1]), treatment), axis=1).astype(np.float32)
+    H_hat =  np.concatenate((np.ones([num_validation_obs,1]), instruments), axis=1).astype(np.float32)
 
-    H_hatxH_inv = np.linalg.inv(np.dot(H_hat.transpose(),H))
-    H_hatxH_hat_inv =  np.linalg.inv(np.dot(H_hat.transpose(),H_hat))
-    beta = np.dot( H_hatxH_inv, np.dot(H_hat.transpose(),y) ) 
-    D_res = np.zeros([num_validation_obs,num_validation_obs])
-    np.fill_diagonal(D_res,(np.dot(H,beta) - y)**2)
-    V_beta = np.dot(np.dot(H_hat.transpose(),D_res),H_hat) #the inner filling of the sandwich
-    V_beta  = np.dot(np.dot(H_hatxH_hat_inv,V_beta ),H_hatxH_hat_inv) #full variance
+    H_hatxH_inv = np.linalg.inv(np.dot(H_hat.transpose(),H)).astype(np.float32)
+    H_hatxH_hat_inv =  np.linalg.inv(np.dot(H_hat.transpose(),H_hat)).astype(np.float32)
+    beta = np.dot( H_hatxH_inv, np.dot(H_hat.transpose(),y) ).astype(np.float32)
+    D_res = np.zeros([num_validation_obs,num_validation_obs],dtype=np.float32)
+    res = (np.dot(H,beta) - y)**2
+    np.fill_diagonal(D_res,res)
+    V_beta = np.dot(np.dot(H_hat.transpose(),D_res),H_hat).astype(np.float32) #the inner filling of the sandwich
+    V_beta  = np.dot(np.dot(H_hatxH_hat_inv,V_beta ),H_hatxH_hat_inv).astype(np.float32) #full variance
     print "--------------------"
     print "Treatment Effects of Intercept+ NN output node(s):"
     print beta
@@ -119,7 +147,7 @@ def process_features(features):
 #probs/means/sds1 are the first stage cond. distro parameters,
 #B is the number of simulations per obs
 #p_index is the column index of the policy variable we simulate in the feature matrix
-def secondstage_loss(outcome,outcome_dnn,inputs,session,features2,probs1,means1,sds1,p_mean,p_sd,B=1000,p_index=0):
+def secondstage_loss_cont(outcome,outcome_dnn,inputs,session,features2,probs1,means1,sds1,p_mean,p_sd,B=1000,p_index=0):
     mc_outcomes = np.zeros(shape = (outcome.shape[0],B))
     mc_policy = (mdn.sim_mdn(probs1,means1,sds1,num_sims=B) - p_mean)/p_sd
     temp_features = features2
@@ -161,6 +189,50 @@ def ind_secondstage_loss_gradient_cont(outcome,features2,pi1,mu1,sigma1, \
         newgrad.append(multiplier*grad[g])
     return newgrad
 
+#estimate loss function (for validation training)
+#args: outcome is true outcome data,
+#outcome_dnn is the DNN trained to predict y, given inputs
+#session is the current tensorflow session being used
+#features2 is the set of 2nd stage features,
+#probs/means/sds1 are the first stage cond. distro parameters,
+#B is the number of simulations per obs
+#p_index is the column index of the policy variable we simulate in the feature matrix
+def secondstage_loss_discrete(outcome,features2,P,p_range,outcome_dnn,inputs,session):
+    exp_outcomes = np.zeros(shape = (outcome.shape[0],1)) #E[h|1st stage]
+    temp_features = features2
+    cats = range(P.shape[1])
+    for c in cats:
+        temp_p  = np.zeros(shape=[len(cats),1])
+        temp_p[c] = 1
+        temp_features[:,p_range] = temp_p.flatten()
+        exp_outcomes[:,0]= P[:,c]*session.run(outcome_dnn,feed_dict={inputs: temp_features.astype(np.float32)}).flatten()
+    return np.mean((exp_outcomes - outcome)**2.)
+
+
+#the analogue to the function above, but done for discrete endogoneous variables
+#which are assumed to be fed into the outcome NN via indicators for each category
+#p-range defines the range of column indices that 
+def ind_secondstage_loss_gradient_discrete(outcome,features2, P,p_range,
+        outcome_dnn,inputs,grad_fcn,session):
+    tempfeat = features2
+    #print"-----"
+    pred_outcome=0
+    cats = range(P.shape[1])
+    for c in cats:
+        temp_p  = np.zeros(shape=[len(cats),1])
+        temp_p[c] = 1
+        tempfeat[:,p_range] = temp_p.flatten()
+        pred_outcome = P[:,c]*session.run(outcome_dnn,feed_dict={inputs: tempfeat.astype(np.float32)})
+        temp_grad = session.run(grad_fcn,feed_dict={inputs: tempfeat.astype(np.float32)})
+        temp_grad = [P[:,c]*g for g in temp_grad]
+        if c>0:
+            new_grad = [ (ng + tg) for ng,tg in zip(new_grad,temp_grad)]
+        else:
+            new_grad = temp_grad
+    #print(grad)
+    multiplier = -2.* (outcome - pred_outcome)
+    new_grad = [ multiplier*ng for ng in new_grad]
+    return new_grad
 
 
 
@@ -187,7 +259,7 @@ def ind_secondstage_loss_gradient_cont(outcome,features2,pi1,mu1,sigma1, \
 #if this must be changed, additional arg is available (p_index denotes col to train)
 #pi,mu,sigma: the rows of each individual's 1st stage distribution of the endogenous variable (expressed as mix of normals)
 #num_nodes: the number of nodes in the hidden layer
-def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0):
+def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0,learning_rate=0.001):
     if seed!=None:
         np.random.seed(seed)  
     else:
@@ -222,7 +294,7 @@ def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,
     grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
 
     #the optimizer
-    trainer = tf.train.GradientDescentOptimizer(learning_rate=.001)
+    trainer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
     #initialize tensorflow
     s = tf.InteractiveSession()
     s.run(tf.global_variables_initializer())
@@ -283,7 +355,7 @@ def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,
     s.close()
     return [W_in_final, B_in_final, W_out_final,B_out_final]
 
-def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0,folds=5):
+def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed=None,p_index=0,folds=5,learning_rate=0.001):
     if seed!=None:
         np.random.seed(seed)  
     else:
@@ -343,7 +415,7 @@ def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,see
         grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
 
         #the optimizer
-        trainer = tf.train.GradientDescentOptimizer(learning_rate=.001)
+        trainer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
         #initialize tensorflow
         s = tf.InteractiveSession()
         s.run(tf.global_variables_initializer())
@@ -417,8 +489,8 @@ def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,see
 
     return test_losses
 
-def cv_mp_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds,filename):
-    test_losses = cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds)
+def cv_mp_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds,learning_rate,filename):
+    test_losses = cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,seed,p_index,folds,learning_rate)
     meanerr = np.mean(test_losses)
     sderr = np.std(test_losses)
     f = open(filename,'w')
@@ -431,50 +503,6 @@ def cv_mp_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,
     return [num_nodes,test_losses]
 
 
-#estimate loss function (for validation training)
-#args: outcome is true outcome data,
-#outcome_dnn is the DNN trained to predict y, given inputs
-#session is the current tensorflow session being used
-#features2 is the set of 2nd stage features,
-#probs/means/sds1 are the first stage cond. distro parameters,
-#B is the number of simulations per obs
-#p_index is the column index of the policy variable we simulate in the feature matrix
-def secondstage_loss_discrete(outcome,features2,P,p_range,outcome_dnn,inputs,session):
-    exp_outcomes = np.zeros(shape = (outcome.shape[0],1)) #E[h|1st stage]
-    temp_features = features2
-    cats = range(P.shape[1])
-    for c in cats:
-        temp_p  = np.zeros(shape=[len(cats),1])
-        temp_p[c] = 1
-        temp_features[:,p_range] = temp_p.flatten()
-        exp_outcomes[:,0]= P[:,c]*session.run(outcome_dnn,feed_dict={inputs: temp_features.astype(np.float32)}).flatten()
-    return np.mean((exp_outcomes - outcome)**2.)
-
-
-#the analogue to the function above, but done for discrete endogoneous variables
-#which are assumed to be fed into the outcome NN via indicators for each category
-#p-range defines the range of column indices that 
-def ind_secondstage_loss_gradient_discrete(outcome,features2, P,p_range,
-        outcome_dnn,inputs,grad_fcn,session):
-    tempfeat = features2
-    #print"-----"
-    pred_outcome=0
-    cats = range(P.shape[1])
-    for c in cats:
-        temp_p  = np.zeros(shape=[len(cats),1])
-        temp_p[c] = 1
-        tempfeat[:,p_range] = temp_p.flatten()
-        pred_outcome = P[:,c]*session.run(outcome_dnn,feed_dict={inputs: tempfeat.astype(np.float32)})
-        temp_grad = session.run(grad_fcn,feed_dict={inputs: tempfeat.astype(np.float32)})
-        temp_grad = [P[:,c]*g for g in temp_grad]
-        if c>0:
-            new_grad = [ (ng + tg) for ng,tg in zip(new_grad,temp_grad)]
-        else:
-            new_grad = temp_grad
-    #print(grad)
-    multiplier = -2.* (outcome - pred_outcome)
-    new_grad = [ multiplier*ng for ng in new_grad]
-    return new_grad
 
 #args:
 #y: outcome
@@ -484,7 +512,7 @@ def ind_secondstage_loss_gradient_discrete(outcome,features2, P,p_range,
 #P: the matrix of predicted probabilities that depend on x plus instruments
 #p_range: the location the the p dummies for each class
 #num_nodes: the number of nodes in the hidden layer
-def train_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None):
+def train_second_stage_discrete(y,features_second,P,p_range,num_nodes,learning_rate=0.001,seed=None,):
     if seed!=None:
         np.random.seed(seed)  
     else:
@@ -519,7 +547,7 @@ def train_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None)
     grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
 
     #the optimizer
-    trainer = tf.train.GradientDescentOptimizer(learning_rate=.01)
+    trainer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
     #initialize tensorflow
     s = tf.InteractiveSession()
     s.run(tf.global_variables_initializer())
@@ -577,7 +605,7 @@ def train_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None)
     return [W_in_final, B_in_final, W_out_final,B_out_final]
 
 
-def cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None,folds=5):
+def cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None,folds=5,learning_rate=0.001):
     if seed!=None:
         np.random.seed(seed)  
     else:
@@ -632,7 +660,7 @@ def cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None,fol
         grad_var_pairs = zip([g_W_in,g_b_in,g_W_out,g_b_out],[W_input,b_input,W_output,b_output])
 
         #the optimizer
-        trainer = tf.train.GradientDescentOptimizer(learning_rate=.01)
+        trainer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
         #initialize tensorflow
         s = tf.InteractiveSession()
         s.run(tf.global_variables_initializer())
@@ -697,8 +725,8 @@ def cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed=None,fol
 
     return test_losses
 
-def cv_mp_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed,folds,filename):
-    test_losses = cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed,folds)
+def cv_mp_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed,learning_rate,filename):
+    test_losses = cv_second_stage_discrete(y,features_second,P,p_range,num_nodes,seed,folds,learning_rate)
     meanerr = np.mean(test_losses)
     sderr = np.std(test_losses)
     f = open(filename,'w')
