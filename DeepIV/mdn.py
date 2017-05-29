@@ -53,7 +53,7 @@ def tf_MNlhood(P,y):
 
 
 #fit a MDN and return the NN parameters of interest (plus the estimated dist params)
-def fit_MDN(p,covars,num_components=3,num_nodes=10,learning_rate=0.001,seed=None,plot_loss=True):
+def fit_MDN(p,covars,num_components=3,num_nodes=10,learning_rate=0.001,seed=None,num_batches=10,plot_loss=True):
     np.random.seed(seed)
     if seed==None:
         seed=9 #for TF calls
@@ -94,25 +94,32 @@ def fit_MDN(p,covars,num_components=3,num_nodes=10,learning_rate=0.001,seed=None
     validation_indices = np.random.choice(num_obs,num_obs/5)
     train_indices = np.ones(len(p), np.bool)
     train_indices[validation_indices]=0
+    num_train_obs=sum(train_indices)
     p_validation = p[validation_indices]
     covars_validation = covars[validation_indices,:]
     p_train = p[train_indices]
     covars_train = covars[train_indices,:]
+    if num_batches=='all':
+        num_batches=num_train_obs
     for i in range(num_iters):
-      if i%100==0:
-        print i
-      #SGD
-      subsamp = np.random.choice(num_obs,1)
-      s.run(trainer,feed_dict={inputs: covars[subsamp,:].astype(np.float32), endog: p[subsamp,:].astype(np.float32)})
-      #s.run(trainer,feed_dict={inputs: covars_train.astype(np.float32), endog: p_train.astype(np.float32)})
-      #losses.append(s.run(loss,feed_dict={inputs: covars_train.astype(np.float32), endog: p_train.astype(np.float32)}))
-      if i%10==0:
-        validation_losses.append(s.run(loss,feed_dict={inputs: covars_validation.astype(np.float32), endog: p_validation.astype(np.float32)}))
-        if len(validation_losses) > 5:
-            if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
-            #if np.mean(validation_losses[len(validation_losses)-2])< validation_losses[len(validation_losses)-1]:
-                print "Exiting at iteration " + str(i) + " due to increase in validation error." 
-                break
+        if i%100==0:
+            print i
+        if i%num_batches==0:
+            #redo the batch order
+            batchrank= np.argsort(np.random.uniform(size=num_train_obs))
+        #assign the batch obs
+        batch = (batchrank >= (i%num_batches)*num_train_obs/num_batches) & (batchrank <((i%num_batches)+1)*num_train_obs/num_batches)
+        #SGD
+        s.run(trainer,feed_dict={inputs: covars_train[batch,:].astype(np.float32), endog: p_train[batch,:].astype(np.float32)})
+        #s.run(trainer,feed_dict={inputs: covars_train.astype(np.float32), endog: p_train.astype(np.float32)})
+        #losses.append(s.run(loss,feed_dict={inputs: covars_train.astype(np.float32), endog: p_train.astype(np.float32)}))
+        if i%10==0:
+            validation_losses.append(s.run(loss,feed_dict={inputs: covars_validation.astype(np.float32), endog: p_validation.astype(np.float32)}))
+            if len(validation_losses) > 5:
+                #if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
+                if np.mean(validation_losses[len(validation_losses)-2])< validation_losses[len(validation_losses)-1]:
+                    print "Exiting at iteration " + str(i) + " due to increase in validation error." 
+                    break
     if plot_loss:
         print validation_losses
         plt.plot(range(len(validation_losses)),validation_losses)
@@ -130,7 +137,7 @@ def fit_MDN(p,covars,num_components=3,num_nodes=10,learning_rate=0.001,seed=None
 ##################################################################
 #d k-fold CV to get an average LL on test data from the training
 def cv_MDN(p,covars, \
-    num_components=3,num_nodes=10,learning_rate=0.001,folds=5,seed=None):
+    num_components=3,num_nodes=10,learning_rate=0.001,folds=5,seed=None,num_batches=10):
     if seed != None:
         np.random.seed(seed)
     else:
@@ -155,24 +162,24 @@ def cv_MDN(p,covars, \
         covars_train = covars[foldgroups!=k,:]
         p_test = p[foldgroups==k]
         covars_test = covars[foldgroups==k,:]
-        num_obs_train = p_train.shape[0]
+        num_train_obs = p_train.shape[0]
         #split train data further for validation set
         #to evaluate when to stop gradient descent
-        validation_indices = np.random.choice(num_obs_train,num_obs_train/5)
+        validation_indices = np.random.choice(num_train_obs,num_train_obs/5)
         train_indices = np.ones(len(p_train), np.bool)
         train_indices[validation_indices]=0
         p_validation = p_train[validation_indices]
         covars_validation = covars_train[validation_indices,:]
         p_train = p_train[train_indices]
         covars_train = covars_train[train_indices,:]
-        num_obs_train = p_train.shape[0]
+        num_train_obs=sum(train_indices)
         #initialize weights and biases for input->hidden layer
-        W_input = tf.Variable(tf.random_uniform(shape=[num_inputs,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed))
-        b_input = tf.Variable(tf.random_uniform(shape=[1,num_nodes],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed))
+        W_input = tf.Variable(tf.random_uniform(shape=[num_inputs,num_nodes],minval=-.01,maxval=.01,dtype=tf.float32,seed=seed))
+        b_input = tf.Variable(tf.random_uniform(shape=[1,num_nodes],minval=-.01,maxval=.01,dtype=tf.float32,seed=seed))
 
         #initialize weights and biases for hidden->output layer
-        W_output = tf.Variable(tf.random_uniform(shape=[num_nodes,num_output],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed))
-        b_output = tf.Variable(tf.random_uniform(shape=[1,num_output],minval=-.1,maxval=.1,dtype=tf.float32,seed=seed))
+        W_output = tf.Variable(tf.random_uniform(shape=[num_nodes,num_output],minval=-.01,maxval=.01,dtype=tf.float32,seed=seed))
+        b_output = tf.Variable(tf.random_uniform(shape=[1,num_output],minval=-.01,maxval=.01,dtype=tf.float32,seed=seed))
 
         #instantiate data vars
         inputs = tf.placeholder(dtype=tf.float32, shape=[None,num_inputs], name="inputs")
@@ -189,18 +196,23 @@ def cv_MDN(p,covars, \
         print "training..."
         num_iters = 10000 #the number of gradient descents
         validation_losses=[]
+        if num_batches=='all':
+            num_batches=num_train_obs
         for i in range(num_iters):
-          #SGD
-          #subsamp = np.random.choice(num_obs_train,num_obs_train/10)
-          #s.run(trainer,feed_dict={inputs: covars_train[subsamp,:].astype(np.float32), endog: p_train[subsamp,:].astype(np.float32)})
-          s.run(trainer,feed_dict={inputs: covars_train.astype(np.float32), endog: p_train.astype(np.float32)})
-          if i%10==0:
-            validation_losses.append(s.run(loss,feed_dict={inputs: covars_validation.astype(np.float32), endog: p_validation.astype(np.float32)}))
+            if i%num_batches==0:
+                #redo the batch order
+                batchrank= np.argsort(np.random.uniform(size=num_train_obs))
+            #assign the batch obs
+            batch = (batchrank >= (i%num_batches)*num_train_obs/num_batches) & (batchrank <((i%num_batches)+1)*num_train_obs/num_batches)
+            #SGD
+            s.run(trainer,feed_dict={inputs: covars_train[batch,:].astype(np.float32), endog: p_train[batch,:].astype(np.float32)})
+            if i%10==0:
+                validation_losses.append(s.run(loss,feed_dict={inputs: covars_validation.astype(np.float32), endog: p_validation.astype(np.float32)}))
             if len(validation_losses) > 5:
                 if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
-                #if np.mean(validation_losses[len(validation_losses)-2])< validation_losses[len(validation_losses)-1]:
+                    #if np.mean(validation_losses[len(validation_losses)-2])< validation_losses[len(validation_losses)-1]:
                     print "Exiting at iteration " + str(i) + " due to increase in validation error." 
-                break
+                    break
         fold_ll = s.run(loss,feed_dict={inputs: covars_test.astype(np.float32), endog: p_test.astype(np.float32)})
         print fold_ll
         test_LL.append(fold_ll)
@@ -440,8 +452,8 @@ def plot_mdn_sim(p,z,covars,mixprobs,mixmeans,mixsds,B=10,figdir='', seed=1992,b
     plt.savefig(figdir + 'hist_endog.pdf')
     plt.show()
     #a scatterplot of the instrument vs the policy variable
-    plt.scatter(z_samples.flatten(),p_samples.flatten(),color='r', alpha=.3, label='Simulated Data')
-    plt.scatter(z,p,color='b',alpha=.3,label='Actual Data')
+    plt.scatter(z_samples.flatten(),p_samples.flatten(),color='r', alpha=.1, label='Simulated Data')
+    plt.scatter(z,p,color='b',alpha=1,label='Actual Data')
     plt.legend()
     plt.xlabel('Instrument Variable')
     plt.ylabel('Endogenous Variable')

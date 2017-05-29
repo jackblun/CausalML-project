@@ -8,15 +8,20 @@ settlermort <- read.csv('/../Data/colonial_origins_data_missimp.csv')
 #keep obs with settler mortality data since it is the instrument of interest
 
 #plot CV results
-cv.first.AJR <- read.csv('/home/luis/CausalML-project/DeepIV/CV_first_stage.csv')
+cv.first.AJR <- read.csv('/home/luis/CausalML-project/DeepIV/AJR/CV_first_stage_final.csv')
 #remove missing/Inf values
-cv.first.AJR$finite = is.finite(cv.first.AJR$LL)
+cv.first.AJR$finite = is.finite(cv.first.AJR$LL_mean)
 
-cv.first.AJR$LL[!cv.first$finite]=NA
-ggplot(data=cv.first[cv.first$comps>=1,],aes(x=nodes,y=LL,colour=factor(comps))) +geom_point(alpha=.7) +
+cv.first.AJR$LL_mean[!cv.first.AJR$finite]=NA
+ggplot(data=cv.first.AJR[cv.first.AJR$comps>=1,],aes(x=nodes,y=LL_mean,colour=factor(comps))) +geom_point(alpha=.7) +
   ggtitle('Test CV over node / mixture choices with Local Smoothers')+scale_colour_discrete(name='# of Normal Mixtures') +geom_smooth(fill=NA) +
   xlab('# of Hidden Layer Nodes') + ylab('Negative Log-Likelihood')
 ggsave('/home/luis/CausalML-project/DeepIV/CV_1stStage_graph.pdf')
+
+
+ggplot(data=cv.first.AJR[cv.first.AJR$comps==2,],aes(x=nodes,y=LL_mean,colour=factor(comps))) +geom_point(alpha=.7) + geom_line() +
+  geom_ribbon(aes(ymin=LL_mean-LL_sd, ymax=LL_mean+LL_sd),fill=NA,linetype='dashed') +
+  ylab('MSE') + xlab('# of Hidden Layer Nodes')
 
 cv.second <- read.csv('/home/luis/CausalML-project/DeepIV/cv_mp_output/cv_secondstage.csv')
 ggplot(data=cv.second,aes(x=node,y=mean)) + geom_line()+ geom_ribbon(aes(ymin=mean-se, ymax=mean+se),fill=NA,colour='red',linetype='dashed',alpha=0.3) +

@@ -209,3 +209,6 @@ plt.xlabel('Years Of Education')
 plt.ylabel("Structural Implied Logged Weekly Wages")
 plt.savefig(outputdir + 'cohortdiffs.pdf')
 plt.show()
+
+#do a comparison of new england and southern returns for black men in 40s versus white men 
+
