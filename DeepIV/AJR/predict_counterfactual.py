@@ -95,11 +95,11 @@ beta,v_beta = deepiv.estimate_iv_coefs(y[validation_sample],treat,inst)
 #assigning full or zero risk appropriation to countries
 num_validation_obs = sum(validation_sample)
 #apply the DNN over the different counterfactuals for each geography
-africa = np.array(settlers['africa'])[validation_sample]
-asia=np.array(settlers['asia'])[validation_sample]
-others = np.ones([num_validation_obs]) - africa -asia
-all_countries = np.ones([num_validation_obs])
-usa = np.array(settlers['shortnam']=="NGA",dtype='int32')[validation_sample]
+africa = np.array(settlers['africa'])
+asia=np.array(settlers['asia'])
+others = np.ones([num_obs]) - africa -asia
+all_countries = np.ones([num_obs])
+usa = np.array(settlers['shortnam']=="NGA",dtype='int32')
 geovars = [africa,asia,others]#,all_countries]#,usa]
 
 
@@ -108,19 +108,19 @@ p_grid = np.arange(0,1.01,.05)
 new_gdp_geo  = np.zeros([len(p_grid),len(geovars)]) #the counterfactual
 V_new_gdp_geo  = np.zeros([len(p_grid),5]) #the counterfactual variance
 #new_p_geo = np.zeros([len(p_grid),5])
-temp_features = features_second[validation_sample,:]
+temp_features = features_second
 
 for index in range(len(p_grid)):
     temp_features[:,p_index] =  p_grid[index]
     #ignore the instruments, only care about treatments.
-    treat,inst = deepiv.predict_2ndStage_cont(features_first[validation_sample,:], \
+    treat,inst = deepiv.predict_2ndStage_cont(features_first, \
         first_mdn['W_in'],first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'], \
         temp_features,trainparams[0],trainparams[1],trainparams[2],trainparams[3], \
         p_mean,p_sd, B=1,p_index=0)
-    H_new =  np.concatenate((np.ones([num_validation_obs,1]), treat), axis=1)
-    gdp_new = np.zeros([num_validation_obs,1])
-    V_gdp_new = np.zeros([num_validation_obs,1])
-    for i in range(num_validation_obs):
+    H_new =  np.concatenate((np.ones([num_obs,1]), treat), axis=1)
+    gdp_new = np.zeros([num_obs,1])
+    V_gdp_new = np.zeros([num_obs,1])
+    for i in range(num_obs):
         gdp_new[i] = np.dot(beta.transpose(),H_new[i,:])
         V_gdp_new[i] = np.dot(np.dot(H_new[i,:].transpose(),v_beta),H_new[i,:])
     #assume they are uncorrelated for now
@@ -140,12 +140,13 @@ for v in range(len(geovars)):
         linestyle='dashed',color=colorvals[v])
     plt.plot(p_grid*10,new_gdp_geo[:,v]+np.sqrt(V_new_gdp_geo[:,v])*1.96, \
         linestyle='dashed',color=colorvals[v])
-    plt.scatter(p[validation_sample][g==1]*10,y[validation_sample][g==1], \
+    plt.scatter(p[g==1]*10,y[g==1], \
         color=colorvals[v],alpha=.5,label=labels[v] + ' (Observed)')
 
 
 plt.legend(loc='upper left')
 plt.xlim([0, 10])
+plt.ylim([6, 11])
 plt.xlabel('Protection Against Expropriation Index (0-10 Scale)')
 plt.ylabel('Log GDP per Capita,1995')
 plt.savefig(outputdir + 'cf_riskexprop.pdf')

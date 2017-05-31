@@ -57,7 +57,7 @@ opt_nodes=121
 trainparams = deepiv.train_second_stage_discrete(y[training_sample,:],features_second[training_sample,:], \
     P[training_sample,:], p_range, \
     opt_nodes,learning_rate=0.01,seed=1992)
-
+np.random.seed(1992)
 print "estimating treatments/instruments"
 #estimate treatments & instruments of 2nd stage on validation sample
 treat,inst = deepiv.predict_2ndStage_discrete(features_first[validation_sample,:], \
@@ -76,6 +76,9 @@ plt.savefig(outputdir + 'treat_inst_outcomes.pdf')
 plt.show()
 print "estimating coefficients"
 beta,V_beta=deepiv.estimate_iv_coefs(y[validation_sample],treat,inst)
+
+
+
 
 #########
 #Begin counterfactuals
@@ -211,4 +214,99 @@ plt.savefig(outputdir + 'cohortdiffs.pdf')
 plt.show()
 
 #do a comparison of new england and southern returns for black men in 40s versus white men 
+#exclude age^2 since the NN can handle nonlinearities anyway
 
+
+#compare black and white men returns by age for a given cohort (most populated of the 10)
+#get medians/averages for CF
+y_median = 'YR20'
+for y in range(20,30):
+    yvar = 'YR'  +str(y)
+    if sum(census[yvar]) > sum(census[y_median]):
+        y_median=yvar
+
+area_median = 'ENOCENT'
+areas=[u'ENOCENT',u'ESOCENT',u'MIDATL', u'MT', u'NEWENG', u'SOATL',u'WNOCENT', u'WSOCENT']
+for g in areas:
+    if sum(census[g]) > sum(census[area_median]):
+        area_median=g
+
+#input median features w/ HS education (12 years)
+cf_features = np.zeros(shape=[1,features_second.shape[1]])
+cf_features[:,12] = 1
+cf_features[:,len(p_range) + x_names.index('RACE')] = np.median(census['RACE'])
+cf_features[:,len(p_range) + x_names.index('SMSA')] = np.median(census['SMSA'])
+#cf_features[:,len(p_range) + x_names.index(y_median)] = 1
+cf_features[:,len(p_range) + x_names.index(area_median)] = 1
+#dummy first features to pass to the deepiv function (doesn't affect output)
+age_grid = np.arange(census['AGEQ'].min(),census['AGEQ'].max()+.25,.25)
+hs_returns_age = np.zeros(shape=[len(age_grid),2])
+V_hs_returns_age = np.zeros(shape=[len(age_grid),2])
+for dummy in [0,1]:
+    cf_features[:,len(p_range) + x_names.index('MARRIED')] = dummy
+    for a in range(len(age_grid)):
+        age_new = age_grid[a]
+        yr_new = int(1980 - np.floor(age_grid[0]+.75) - 1910)
+        cf_features[:,len(p_range) + x_names.index('AGEQ')] = age_new
+        cf_features[:,len(p_range) + x_names.index('YR' + str(yr_new))]=1
+        treat =  np.dot(np.tanh(np.dot(cf_features,trainparams[0]) + trainparams[1]),trainparams[2]) + \
+                    trainparams[3]
+        H_new =  np.array([1,treat])
+        H_new.shape = [2,1]
+        hs_returns_age[a,dummy] = np.dot(beta.transpose(),H_new)
+        V_hs_returns_age[a,dummy] = np.dot(np.dot(H_new.transpose(),V_beta),H_new)
+        cf_features[:,len(p_range) + x_names.index('YR' + str(yr_new))]=0
+
+
+#plot it
+colorvals = ['g','b']
+for dummy in [0,1]:
+    plt.plot(age_grid, hs_returns_age[:,dummy],label="MARRIED=" + str(dummy),color=colorvals[dummy])
+    plt.plot(age_grid, hs_returns_age[:,dummy] - np.sqrt(V_hs_returns_age[:,dummy]), \
+            linestyle='dashed',color=colorvals[dummy])
+    plt.plot(age_grid, hs_returns_age[:,dummy] + np.sqrt(V_hs_returns_age[:,dummy]), \
+            linestyle='dashed',color=colorvals[dummy])    
+
+plt.legend(loc='lower left')
+plt.savefig(outputdir + 'cf_married.pdf')
+plt.show()
+##########################################
+#try regional returns to HS education by race
+#fix age to plurality observed
+cf_features[:,len(p_range) + x_names.index(y_median)] = 1
+cf_features[:,len(p_range) + x_names.index('AGEQ')] = np.median(census.loc[census[y_median]==1, 'AGEQ'])
+cf_features[:,len(p_range) + x_names.index('MARRIED')] = np.median(census['MARRIED'])
+cf_features[:,len(p_range) + x_names.index(area_median)] = 0
+#dummy first features to pass to the deepiv function (doesn't affect output)
+
+hs_returns_region= np.zeros(shape=[len(areas),2])
+V_hs_returns_region = np.zeros(shape=[len(areas),2])
+for dummy in [0,1]:
+    cf_features[:,len(p_range) + x_names.index('RACE')] = dummy
+    for a in range(len(areas)):
+        area_new = areas[a]
+        cf_features[:,len(p_range) + x_names.index(area_new)] = 1
+        treat =  np.dot(np.tanh(np.dot(cf_features,trainparams[0]) + trainparams[1]),trainparams[2]) + \
+                    trainparams[3]
+        H_new =  np.array([1,treat])
+        H_new.shape = [2,1]
+        hs_returns_region[a,dummy] = np.dot(beta.transpose(),H_new)
+        V_hs_returns_region[a,dummy] = np.dot(np.dot(H_new.transpose(),V_beta),H_new)
+        cf_features[:,len(p_range) + x_names.index(area_new)] = 0
+
+
+
+colorvals = ['g','b']
+for dummy in [0,1]:
+    #plt.scatter(range(len(areas)), hs_returns_region[:,dummy],label="BLACK=" + str(dummy),color=colorvals[dummy])
+    plt.errorbar(np.array(range(len(areas))) +(-.05 +.1*dummy) ,hs_returns_region[:,dummy],yerr= np.sqrt(V_hs_returns_region[:,dummy]), \
+        label="BLACK=" + str(dummy),color=colorvals[dummy], ls='none',marker='o')
+    #plt.plot(range(len(areas)), hs_returns_region[:,dummy] - np.sqrt(V_hs_returns_region[:,dummy]), \
+    #        linestyle='dashed',color=colorvals[dummy])
+    #plt.plot(range(len(areas)), hs_returns_region[:,dummy] + np.sqrt(V_hs_returns_region[:,dummy]), \
+    #        linestyle='dashed',color=colorvals[dummy])    
+
+plt.legend(loc='lower left')
+plt.xticks(range(len(areas)),areas,rotation=25)
+plt.savefig(outputdir + 'cf_region_race.pdf')
+plt.show()
