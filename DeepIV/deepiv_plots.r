@@ -23,12 +23,12 @@ ggplot(data=cv.first.AJR[cv.first.AJR$comps==2,],aes(x=nodes,y=LL_mean,colour=fa
   geom_ribbon(aes(ymin=LL_mean-LL_sd, ymax=LL_mean+LL_sd),fill=NA,linetype='dashed') +
   ylab('MSE') + xlab('# of Hidden Layer Nodes')
 
-cv.second <- read.csv('/home/luis/CausalML-project/DeepIV/cv_mp_output/cv_secondstage.csv')
-ggplot(data=cv.second,aes(x=node,y=mean)) + geom_line()+ geom_ribbon(aes(ymin=mean-se, ymax=mean+se),fill=NA,colour='red',linetype='dashed',alpha=0.3) +
+cv.second.AJR <- read.csv('/home/luis/CausalML-project/DeepIV/AJR/cv_mp_output/cv_secondstage.csv')
+ggplot(data=cv.second.AJR,aes(x=node,y=mean)) + geom_line()+ geom_ribbon(aes(ymin=mean-se, ymax=mean+se),fill=NA,colour='red',linetype='dashed',alpha=0.3) +
 ylab('MSE') + xlab('# of Hidden Layer Nodes')  + ggtitle('Test CV over node choices for second stage +/- CV SE') + coord_cartesian(ylim = c(0,3))
-ggsave('/home/luis/CausalML-project/DeepIV/CV_2ndStage_graph.pdf')
+ggsave('/home/luis/CausalML-project/DeepIV/AJR/CV_2ndStage_graph.pdf')
 
-
+#######################
 cv.first.AK <-read.csv('/home/luis/CausalML-project/DeepIV/AK/CV_first_stage.csv')
 #remove missing/Inf values
 cv.first.AK$finite = is.finite(cv.first.AK$LL_mean)

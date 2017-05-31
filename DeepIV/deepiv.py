@@ -149,7 +149,7 @@ def process_features(features):
 #p_index is the column index of the policy variable we simulate in the feature matrix
 def secondstage_loss_cont(outcome,outcome_dnn,inputs,session,features2,probs1,means1,sds1,p_mean,p_sd,B=1000,p_index=0):
     mc_outcomes = np.zeros(shape = (outcome.shape[0],B))
-    mc_policy = (mdn.sim_mdn(probs1,means1,sds1,num_sims=B) - p_mean)/p_sd
+    mc_policy = (mdn.sim_mdn(probs1,means1,sds1,B=B) - p_mean)/p_sd
     temp_features = features2
     for b in range(B):
         temp_features[:,p_index] = mc_policy[:,b]
@@ -172,9 +172,9 @@ def ind_secondstage_loss_gradient_cont(outcome,features2,pi1,mu1,sigma1, \
         outcome_dnn,inputs,grad_fcn,session,p_mean,p_sd,p_index=0):
     #correct one obs issue w/ array instead of mat
     #print pi1.shape
-    p1 = (mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1) - p_mean)/p_sd
+    p1 = (mdn.sim_mdn(pi1,mu1,sigma1,B=1) - p_mean)/p_sd
     #print pi1.shape
-    p2 = (mdn.sim_mdn(pi1,mu1,sigma1,num_sims=1) - p_mean)/p_sd
+    p2 = (mdn.sim_mdn(pi1,mu1,sigma1,B=1) - p_mean)/p_sd
     tempfeat_1 = features2
     tempfeat_2 = features2
     tempfeat_1[:,p_index] = p1
@@ -325,7 +325,7 @@ def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,
         for v in [obs_y, obs_feat, pi_i, mu_i ,sd_i]:
             v.shape = [1,len(v)]
 
-        stoch_grad = ind_secondstage_loss_gradient(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,inputs,nn_gradients,s,p_mean,p_sd)
+        stoch_grad = ind_secondstage_loss_gradient_cont(obs_y,obs_feat,pi_i,mu_i,sd_i,outcome_layer,inputs,nn_gradients,s,p_mean,p_sd)
         grad_dict={}
         grad_index=0
         for theta in [g_W_in,g_b_in,g_W_out,g_b_out]:
@@ -334,12 +334,12 @@ def train_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,
         s.run(trainer.apply_gradients(grad_var_pairs),feed_dict=grad_dict)
         #the gradients of the output layer w.r.t. network parameters
         if i%10==0:
-            loss=secondstage_loss(y[validation_indices],outcome_layer,inputs,s,\
+            loss=secondstage_loss_cont(y[validation_indices],outcome_layer,inputs,s,\
                 features_second[validation_indices,:], \
                 pi[validation_indices,:], \
                 mu[validation_indices,:], \
                 sigma[validation_indices,:], \
-                p_mean,p_sd,B=100)
+                p_mean,p_sd,B=1000)
             validation_losses.append(loss)
             if len(validation_losses) > 5:
                 if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)])< validation_losses[len(validation_losses)-1]:
@@ -441,7 +441,6 @@ def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,see
 
         #print "training..."
         num_iters = 10000
-        tol=1e-4
         for i in range(num_iters):
             #if i%100==0:
             # print "     iteration: " + str(i)
@@ -464,24 +463,24 @@ def cv_second_stage_cont(y,features_second,pi,mu,sigma,num_nodes,p_mean,p_sd,see
             s.run(trainer.apply_gradients(grad_var_pairs),feed_dict=grad_dict)
             #the gradients of the output layer w.r.t. network parameters
             if i%10==0:
-                loss=secondstage_loss(y_validation,outcome_layer,inputs,s,\
+                loss=secondstage_loss_cont(y_validation,outcome_layer,inputs,s,\
                     features_validation, \
                     pi_validation, \
                     mu_validation, \
                     sigma_validation, \
-                    p_mean,p_sd,B=100)
+                    p_mean,p_sd,B=1000)
                 validation_losses.append(loss)
                 if len(validation_losses) > 5:
                     if np.mean(validation_losses[(len(validation_losses)-6):(len(validation_losses)-2)]) < validation_losses[len(validation_losses)-1]:
                         print "--------------------------"
                         print "Exiting at iteration " + str(i) + " due to increase in validation error." 
                         break
-        test_loss = secondstage_loss(y_test,outcome_layer,inputs,s,\
+        test_loss = secondstage_loss_cont(y_test,outcome_layer,inputs,s,\
                     features_test, \
                     pi_test, \
                     mu_test, \
                     sigma_test, \
-                    p_mean,p_sd,B=100)
+                    p_mean,p_sd,B=1000)
         test_losses.append(test_loss)
         s.close()
         print "completed fold " + str(k) + ' for n=' + str(num_nodes)
