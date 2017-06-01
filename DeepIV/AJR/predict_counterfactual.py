@@ -47,16 +47,13 @@ features_second=np.delete(features_second,secondstage_dnn['excluded_vars'],axis=
 for v in range(features_second.shape[1]):
     features_second[:,v] = (features_second[:,v] - secondstage_dnn['stdizing_means'][v] )/ secondstage_dnn['stdizing_sds'][v]
 
-features_second[:,0] = p.flatten()
+features_second[:,0] = p.flatten() #reinput p since it is already normalized and more interpretable this way
 #p_mean = secondstage_dnn['p_mean']
 #p_sd = secondstage_dnn['p_sd']
 p_mean=0
 p_sd=1
 
-z_mean  =z[:,0].mean()
-z_sd = z[:,0].std()
-
-opt_nodes= secondstage_dnn['W_in'].shape[1]
+opt_nodes= 43
 
 #split up data to be training/validation
 np.random.seed(1992)
@@ -71,19 +68,19 @@ trainparams = deepiv.train_second_stage_cont(y[training_sample,:],features_secon
     opt_nodes,p_mean,p_sd,seed=1992,p_index=0)
 
 #estimate treatments & instruments of 2nd stage on validation sample
-treat,inst = deepiv.predict_2ndStage_cont(features_first[validation_sample,:], \
-    first_mdn['W_in'],first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'], \
-    features_second[validation_sample,:],trainparams[0],trainparams[1],trainparams[2],trainparams[3], \
+treat,inst = deepiv.predict_etas_cont(first_mdn['pi'][validation_sample,:], \
+    first_mdn['mu'][validation_sample,:],first_mdn['sigma'][validation_sample,:], \
+    features_second[validation_sample,:],trainparams[0],trainparams[1], \
     p_mean,p_sd, B=10000,p_index=0)
 
-#plot treat vs instrument
-plt.scatter(y[validation_sample],inst,color='r',label='Instruments',alpha=.5)
-plt.scatter(y[validation_sample],treat,color='b',label='Treatments',alpha=.5)
-plt.plot([min(y[validation_sample]),max(y[validation_sample])],[min([min(inst),min(treat)]),max([max(inst),max(treat)])] , ls="--", c=".3")
-plt.xlabel('Observed Outcome')
-plt.ylabel('Predicted Outcome')
+#plot 1st hidden node treat vs instrument
+plt.scatter(treat[:,0],inst[:,0],color='r',label='Node 1',alpha=.5)
+plt.scatter(treat[:,1],inst[:,1],color='b',label='Node 2',alpha=.5)
+plt.plot([min([np.min(inst),np.min(treat)]),max([np.max(inst),np.max(treat)])] , ls="--", c=".3")
+plt.xlabel('Treatments')
+plt.ylabel('Instruments')
 plt.legend(loc='lower right')
-plt.savefig(outputdir + 'treat_inst_outcomes.pdf')
+plt.savefig(outputdir + 'treat_inst_nodes.pdf')
 plt.show()
 
 
@@ -93,7 +90,7 @@ beta,v_beta = deepiv.estimate_iv_coefs(y[validation_sample],treat,inst)
 
 #counterfactuals: 
 #assigning full or zero risk appropriation to countries
-num_validation_obs = sum(validation_sample)
+num_obs = settlers.shape[0]
 #apply the DNN over the different counterfactuals for each geography
 africa = np.array(settlers['africa'])
 asia=np.array(settlers['asia'])
@@ -113,11 +110,8 @@ temp_features = features_second
 for index in range(len(p_grid)):
     temp_features[:,p_index] =  p_grid[index]
     #ignore the instruments, only care about treatments.
-    treat,inst = deepiv.predict_2ndStage_cont(features_first, \
-        first_mdn['W_in'],first_mdn['B_in'],first_mdn['W_out'],first_mdn['B_out'], \
-        temp_features,trainparams[0],trainparams[1],trainparams[2],trainparams[3], \
-        p_mean,p_sd, B=1,p_index=0)
-    H_new =  np.concatenate((np.ones([num_obs,1]), treat), axis=1)
+    temp_treat =  np.tanh(np.dot(temp_features,trainparams[0]) + trainparams[1])
+    H_new =  np.concatenate((np.ones([num_obs,1]), temp_treat), axis=1)
     gdp_new = np.zeros([num_obs,1])
     V_gdp_new = np.zeros([num_obs,1])
     for i in range(num_obs):

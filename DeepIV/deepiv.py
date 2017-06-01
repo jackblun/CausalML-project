@@ -27,33 +27,29 @@ def predict_1stStage_cond_dist(features,W_features,B_features,W_hidden,B_hidden)
 
 
 #given estimated network parameters
-#sample from the second stage network (for use on left-out sample)
-#to get instruments and treatments given network parameters
+#sample from the second stage network up to the final hidden layer (the "etas" in the paper)
+#to get instruments and treatments given network parameters.
 #p_index denotes location in features_2 of the policy variable
-def predict_2ndStage_cont(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
-                               features_2,W_features_2,B_features_2,W_hidden_2,B_hidden_2,p_mean,p_sd, B=1000,p_index=0):
-    num_obs = features_1.shape[0]
-    hidden_1 = np.tanh(np.dot(features_1,W_features_1) + B_features_1)
-    distparams = np.dot(hidden_1,W_hidden_1) + B_hidden_1
-    probs,means,sds = np.split(distparams,3,axis=1)
-    sds = np.exp(sds)
-    probs = np.exp(probs)/np.sum(np.exp(probs),axis=1)[:,np.newaxis]
-
-    #calculate predicted y given observed p
-    hidden_2 =  np.tanh(np.dot(features_2,W_features_2) + B_features_2)
-    treatments = np.dot(hidden_2,W_hidden_2) + B_hidden_2
-    #calculate predicted y given 1st stage mdn
-    instruments = np.zeros(shape=[num_obs,B])
+# B indicates the number of times we sample to calculate the expectation.
+def predict_etas_cont(pi,mu,sigma, \
+                      features_2,W_features_2,B_features_2,p_mean,p_sd, B=1000,p_index=0):
+    num_obs = features_2.shape[0]
+    num_etas = W_features_2.shape[1]
+    #calculate predicted etas given observed p
+    treatments =  np.tanh(np.dot(features_2,W_features_2) + B_features_2)
+    #calculate predicted etas given 1st stage distribution
+    instruments = np.zeros(shape=[num_obs,num_etas,B])
     temp_features_2 = features_2
     #sample from the policy fcn
     for j in range(B):
-        distchoice =   (np.random.rand(num_obs,1)<=probs.cumsum(axis=1)).argmax(axis=1)
-        p_samp= np.random.normal(loc=means[np.arange(num_obs),distchoice],scale=sds[np.arange(num_obs),distchoice])
+        distchoice =   (np.random.rand(num_obs,1)<=pi.cumsum(axis=1)).argmax(axis=1)
+        p_samp= np.random.normal(loc=mu[np.arange(num_obs),distchoice],scale=sigma[np.arange(num_obs),distchoice])
         p_samp = (p_samp - p_mean)/p_sd
         temp_features_2[:,p_index] = p_samp 
-        instruments[:,j] = (np.dot(np.tanh(np.dot(temp_features_2,W_features_2) + B_features_2),W_hidden_2) + B_hidden_2).flatten()
+        etas = np.tanh(np.dot(temp_features_2,W_features_2) + B_features_2)
+        instruments[:,:,j] = etas
 
-    instruments = np.mean(instruments,axis=1)[:,np.newaxis]
+    instruments = np.mean(instruments,axis=2)
 
     return [treatments,instruments]
 
@@ -61,18 +57,13 @@ def predict_2ndStage_cont(features_1,W_features_1,B_features_1,W_hidden_1,B_hidd
 #sample from the second stage network (for use on left-out sample)
 #to get instruments and treatments given network parameters
 #p_index denotes location in features_2 of the policy variable
-def predict_2ndStage_discrete(features_1,W_features_1,B_features_1,W_hidden_1,B_hidden_1, \
-                               features_2,W_features_2,B_features_2,W_hidden_2,B_hidden_2,p_range):
-    num_obs = features_1.shape[0]
-    hidden_1 = np.tanh(np.dot(features_1,W_features_1) + B_features_1)
-    P = np.dot(hidden_1,W_hidden_1) + B_hidden_1
-    P = np.exp(P)/np.sum(np.exp(P),axis=1)[:,np.newaxis]
-
-    #calculate predicted y given observed p
-    hidden_2 =  np.tanh(np.dot(features_2,W_features_2) + B_features_2)
-    treatments = np.dot(hidden_2,W_hidden_2) + B_hidden_2
-    #calculate predicted y given 1st stage mdn
-    instruments = np.zeros(shape=[num_obs,1])
+def predict_etas_discrete(P,features_2,W_features_2,B_features_2,p_range):
+    num_obs = features_2.shape[0]
+    num_etas = W_features_2.shape[1]
+    #calculate predicted y given observed p (treatments)
+    treatments = np.tanh(np.dot(features_2,W_features_2) + B_features_2)
+    #calculate predicted y given 1st stage multinomial
+    instruments = np.zeros(shape=[num_obs,num_etas])
     temp_features = features_2
     cats = range(P.shape[1]) # number of classes
     #sample from the policy fcn
@@ -80,13 +71,13 @@ def predict_2ndStage_discrete(features_1,W_features_1,B_features_1,W_hidden_1,B_
         temp_p  = np.zeros(shape=[len(cats),1])
         temp_p[c] = 1
         temp_features[:,p_range] = temp_p.flatten()
-        exp_y = (np.dot(np.tanh(np.dot(temp_features,W_features_2) + B_features_2),W_hidden_2) + B_hidden_2).flatten()
-        instruments = instruments + (P[:,c]*exp_y)[:,np.newaxis]
+        exp_eta = P[:,c][:,np.newaxis] * np.tanh(np.dot(temp_features,W_features_2) + B_features_2)
+        instruments = instruments + exp_eta
     return [treatments,instruments]
 
 #given treatments,instruments (as defined in DeepIV paper) and outcomes,
 #from a left-out validation sample, calculate the treatment coefficients via 2SLS
-#and 
+#and the variance
 def estimate_iv_coefs(y,treatment,instruments):
     num_validation_obs = y.shape[0]
     H =  np.concatenate((np.ones([num_validation_obs,1]), treatment), axis=1).astype(np.float32)
@@ -95,11 +86,20 @@ def estimate_iv_coefs(y,treatment,instruments):
     H_hatxH_inv = np.linalg.inv(np.dot(H_hat.transpose(),H)).astype(np.float32)
     H_hatxH_hat_inv =  np.linalg.inv(np.dot(H_hat.transpose(),H_hat)).astype(np.float32)
     beta = np.dot( H_hatxH_inv, np.dot(H_hat.transpose(),y) ).astype(np.float32)
-    D_res = np.zeros([num_validation_obs,num_validation_obs],dtype=np.float32)
+    #do the diagonal residual matrix factorization obs by obs
     res = (np.dot(H,beta) - y)**2
-    np.fill_diagonal(D_res,res)
-    V_beta = np.dot(np.dot(H_hat.transpose(),D_res),H_hat).astype(np.float32) #the inner filling of the sandwich
-    V_beta  = np.dot(np.dot(H_hatxH_hat_inv,V_beta ),H_hatxH_hat_inv).astype(np.float32) #full variance
+    D_res = np.zeros([H.shape[1],H.shape[1]])
+    for i in range(num_validation_obs):
+        #ind_transpose = res[i] * np.dot(H_hat[i,:].transpose(),H_hat[i,:])
+        D_res = D_res + res[i] * np.dot(H_hat[i,:][:,np.newaxis],H_hat[i,:][:,np.newaxis].transpose() )
+    #D_res = D_res/num_validation_obs
+    #ind_transpose = res[i] * np.dot(H_hat[i,:][].transpose(),H_hat[i,:])
+    #print ind_transpose.shape
+    #D_res = np.zeros([num_validation_obs,num_validation_obs],dtype=np.float32)
+    #res = (np.dot(H,beta) - y)**2
+    #np.fill_diagonal(D_res,res)
+    #V_beta = np.dot(np.dot(H_hat.transpose(),D_res),H_hat).astype(np.float32) #the inner filling of the sandwich
+    V_beta  = np.dot(np.dot(H_hatxH_hat_inv,D_res ),H_hatxH_hat_inv).astype(np.float32) #full variance
     print "--------------------"
     print "Treatment Effects of Intercept+ NN output node(s):"
     print beta
