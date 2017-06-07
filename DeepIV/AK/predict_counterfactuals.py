@@ -59,25 +59,16 @@ opt_nodes=43
 trainparams = deepiv.train_second_stage_discrete(y[training_sample,:],features_second[training_sample,:], \
     P[training_sample,:], p_range, \
     opt_nodes,learning_rate=0.01,seed=1992)
+
 print "estimating treatments/instruments"
-#estimate treatments & instruments of 2nd stage on validation sample
+#estimate treatments & instruments & coefs of 2nd stage on validation sample
 treat,inst = deepiv.predict_etas_discrete(P[validation_sample,:], \
     features_second[validation_sample,:], \
     trainparams[0],trainparams[1],p_range)
 
-#plt.scatter(y[validation_sample],inst,color='r',label='Instruments',alpha=.1)
-#plt.scatter(y[validation_sample],treat,color='b',label='Treatments',alpha=.1)
-#plt.plot([min(y[validation_sample]),max(y[validation_sample])],[min([min(inst),min(treat)]),max([max(inst),max(treat)])] , ls="--", c=".3")
-#plt.xlabel('Observed Outcome')
-#plt.ylabel('Predicted Outcome')
-#plt.legend(loc='lower right')
-#plt.savefig(outputdir + 'treat_inst_outcomes.pdf')
-#plt.show()
-#print "estimating coefficients"
-
-
 
 beta,V_beta=deepiv.estimate_iv_coefs(y[validation_sample],treat,inst)
+
 
 
 
@@ -86,70 +77,46 @@ beta,V_beta=deepiv.estimate_iv_coefs(y[validation_sample],treat,inst)
 # #Begin counterfactuals
 # #########
 
-# #counterfactuals: 
-# #look at the education-return profile for the average age 
-# #for non-married,rural new england dude
-# #compare by race?
-# mean_age = np.mean(census['AGEQ'])
-# num_validation_obs = sum(validation_sample)
-# est_earnings = []
 
-# #sample_feature = np.zeros(shape=[1,features_second.shape[1]])
-# #sample_feature[:,len(p_range)-1 + x_names.index('AGEQ')] = mean_age
-# #sample_feature[:,len(p_range)-1 + x_names.index('NEWENG')] = 1
-# #sample_feature[:,len(p_range)-1 + x_names.index('YR25')] = 1
-
-# #do it on a batch of 10% validation obs first
-# counterfact_sample = np.argsort((np.random.rand(num_validation_obs))) <= (num_validation_obs- 1)*0.1
-# temp_features = features_second[validation_sample,:][counterfact_sample,:]
-# cf_features_1 = features_first[validation_sample,:][counterfact_sample,:]
-# y_cf_sample = y[validation_sample,:][counterfact_sample,:]
-# num_cf_obs = sum(counterfact_sample)
-# alt_edu_earnings=[]
-# for c in p_range:
-#     print c
-#     temp_p  = np.zeros(shape=[len(p_range),1])
-#     temp_p[c] = 1
-#     temp_features[:,p_range] = temp_p.flatten()
-#     treat,inst = deepiv.predict_2ndStage_discrete(cf_features_1, \
-#     first_mn['W_in'],first_mn['B_in'],first_mn['W_out'],first_mn['B_out'], \
-#     temp_features, \
-#     trainparams[0],trainparams[1],trainparams[2],trainparams[3], \
-#     p_range)
-#     H_new =  np.concatenate((np.ones([num_cf_obs,1]), treat), axis=1)
-#     earn_new = np.zeros([num_cf_obs,1])
-#     V_earn_new = np.zeros([num_cf_obs,1])
-#     for i in range(num_cf_obs):
-#         #if i%1000 == 0:
-#         #    print i
-#         earn_new[i] = np.dot(beta.transpose(),H_new[i,:])
-#         V_earn_new[i] = np.dot(np.dot(H_new[i,:].transpose(),V_beta),H_new[i,:])
-#     alt_edu_earnings.append([earn_new,V_earn_new])
+#calculate predicted structural wages on the census
+counterfact_sample = np.argsort((np.random.rand(num_obs))) <= (num_obs- 1)*1
+cf_features = features_second[counterfact_sample,:]
+y_cf_sample = y[counterfact_sample,:]
+num_cf_obs = sum(counterfact_sample)
+alt_edu_earnings=[]
+for c in p_range:
+    print c
+    temp_p  = np.zeros(shape=[num_cf_obs,len(p_range)])
+    temp_p[:,c] = 1
+    cf_features[:,p_range] = temp_p
+    treat_temp =  np.tanh(np.dot(cf_features,trainparams[0]) + trainparams[1])
+    H_new =  np.concatenate((np.ones([num_cf_obs,1]), treat_temp), axis=1)
+    earn_new = np.dot(H_new,beta)
+    alt_edu_earnings.append(earn_new)
 
 
-# #plot the first guy
-# earn_cf =[]
-# earn_se=[]
-# p_cf= []
-# earn_obs = []
-# for c in p_range:
-#     p_cf.append(c)
-#     earn_cf.append(np.mean(alt_edu_earnings[c][0]))
-#     earn_se.append(np.mean(np.sqrt(alt_edu_earnings[c][1])))
-#     if sum(features_second[validation_sample,:][counterfact_sample,c])>0:
-#         earn_obs.append(np.mean(y_cf_sample[features_second[validation_sample,:][counterfact_sample,c]==1]))
-#     else:
-#         print "no obs for " + c
-#         earn_obs.append(np.nan)
+#plot the first guy
+earn_cf =[]
+earn_se=[]
+p_cf= []
+earn_obs = []
+for c in p_range:
+    p_cf.append(c)
+    earn_cf.append(np.mean(alt_edu_earnings[c]))
+    #earn_se.append(np.mean(np.sqrt(alt_edu_earnings[c][1])))
+    if sum(features_second[counterfact_sample,c])>0:
+        earn_obs.append(np.mean(y_cf_sample[features_second[counterfact_sample,c]==1]))
+    else:
+        print "no obs for " + c
+        earn_obs.append(np.nan)
 
-
-# plt.errorbar(p_cf,earn_cf,label='Mean earnings from alternative education length',yerr=earn_se)
-# plt.plot(p_cf,earn_obs,label='Mean observed wages by education')
-# plt.legend(loc='upper left')
-# plt.xlabel('Years Of Education')
-# plt.ylabel("logged weekly wages")
-# plt.savefig(outputdir + 'obsVstructural_wages.pdf')
-# plt.show()
+plt.plot(p_cf,earn_obs,label='Mean observed wages by education')
+plt.plot(p_cf,earn_cf,label='Mean earnings from alternative education length')
+plt.xlabel('Years Of Education')
+plt.ylabel("logged weekly wages")
+plt.savefig(outputdir + 'obsVstructural_wages.pdf')
+plt.legend()
+plt.show()
 
 # #compare structural returns between blacks and whites in the sample
 # earn_white=[]
@@ -267,7 +234,7 @@ for dummy in [0,1]:
 plt.xlabel('Age in 1980 Census')
 plt.ylabel('Predicted Log Weekly Wages')
 plt.legend(loc='lower left')
-plt.savefig(outputdir + 'cf_black.pdf')
+plt.savefig(outputdir + 'cf_married.pdf')
 plt.show()
 ##########################################
 #try regional returns to HS education by race
@@ -308,4 +275,26 @@ plt.legend(loc='lower left')
 plt.xticks(range(len(areas)),areas,rotation=25)
 plt.ylabel('Estimated Log Weekly Wages')
 plt.savefig(outputdir + 'cf_region_race.pdf')
+plt.show()
+
+#last one: plot median person against observed wages by education, (rather than average outcome as above)
+med_returns_edu = []
+V_med_returns_edu=[]
+cf_features[:,12] = 0
+cf_features[:,len(p_range) + x_names.index('RACE')] = np.median(census['RACE'])
+cf_features[:,len(p_range) + x_names.index(area_median)] = 1
+for c in p_range:
+    cf_features[:,c] = 1
+    treat_temp =  np.tanh(np.dot(cf_features,trainparams[0]) + trainparams[1])
+    H_new =  np.concatenate((np.ones([1,1]),treat_temp),axis=1)
+    med_returns_edu.append(np.dot(H_new,beta)[0,0])
+    V_med_returns_edu.append(np.dot(np.dot(H_new,V_beta),H_new.transpose())[0,0])
+    cf_features[:,c] = 0
+
+plt.plot(p_cf,earn_obs,label='Mean observed wages by education')
+plt.errorbar(p_cf,med_returns_edu,label='Mean earnings from alternative education length for median observation')
+plt.xlabel('Years Of Education')
+plt.ylabel("logged weekly wages")
+plt.savefig(outputdir + 'obsVstructural_wages_med.pdf')
+plt.legend()
 plt.show()

@@ -16,7 +16,7 @@ cv.first.AJR$LL_mean[!cv.first.AJR$finite]=NA
 ggplot(data=cv.first.AJR[cv.first.AJR$comps>=1,],aes(x=nodes,y=LL_mean,colour=factor(comps))) +geom_point(alpha=.7) +
   ggtitle('Test CV over node / mixture choices with Local Smoothers')+scale_colour_discrete(name='# of Normal Mixtures') +geom_smooth(fill=NA) +
   xlab('# of Hidden Layer Nodes') + ylab('Negative Log-Likelihood')
-ggsave('/home/luis/CausalML-project/DeepIV/CV_1stStage_graph.pdf')
+ggsave('/home/luis/CausalML-project/DeepIV/AJR/CV_1stStage_graph.pdf')
 
 
 ggplot(data=cv.first.AJR[cv.first.AJR$comps==2,],aes(x=nodes,y=LL_mean,colour=factor(comps))) +geom_point(alpha=.7) + geom_line() +
