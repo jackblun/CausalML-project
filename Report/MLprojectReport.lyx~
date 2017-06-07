@@ -102,6 +102,13 @@ In this project, we revisit two classic papers that make use of instrumental
  with other linear least squares methods using IVs.
 \end_layout
 
+\begin_layout Standard
+The outline of the document is as follows: we first present background informati
+on on the two studies and the research questions.
+ In section 3, we go through all the methods we apply to the data in hand.
+ Section 4 shows the results we get from these methods and section 5 concludes.
+\end_layout
+
 \begin_layout Section
 Background and data
 \end_layout
@@ -133,7 +140,10 @@ Angrist and Kreuger (1991) is a landmark study in providing causal evidence
  can instrument this association with the quarter of birth of the student
  to induce quasi experimental variation in the latter, which is what we
  need.
- 
+ Of course, the variation only applies to the subpopulation on whom the
+ law binds, and not necessarily anyone younger or those intending to go
+ to college and it would be difficult to generalize to the whole population
+ without extrapolation.
 \end_layout
 
 \begin_layout Standard
@@ -231,10 +241,10 @@ pick out
  This puts one in the post-selective inference domain, because now the data
  generating process (DGP) model is no longer considered fixed and pre-specified,
  but changes with the data.
- In this case, work by Chernozhukov et al.
- shows that, under certain sparsity assumptions on the coefficients of a
- linear model, post-selection inference is valid in generating average treatment
- effects.
+ In this case, Chernozhukov et al.
+ (2015) shows that, under certain sparsity assumptions on the coefficients
+ of a linear model, post-selection inference is valid in generating average
+ treatment effects.
  
 \end_layout
 
@@ -244,7 +254,7 @@ Regression trees
 
 \begin_layout Standard
 While linear regressions model the predictive function as a linear gradient
- on the feature space, regressive trees allow for more localization by 
+ on the feature space, regression trees allow for more localization by 
 \begin_inset Quotes eld
 \end_inset
 
@@ -296,14 +306,16 @@ Deep IV networks
 \end_layout
 
 \begin_layout Standard
-Deep IV networks form a framework to generalize the 2SLS process itself.
+Deep IV networks form a framework to generalize the 2SLS process itself
+ and were formulated first by Hartford et al.
+ (2016).
  The first stage is replaced by a nonparametric algorithm that computes
  the conditional density of the endogenous variable given the controls and
  the instrument.
  Using this, one uses a second machine learning algorithm to approximate
  the best predictor of the outcome using the above fitted conditional distributi
 on.
- The second stage uses neural networks, also referred to as 
+ The second stage uses deep neural networks, also referred to as 
 \begin_inset Quotes eld
 \end_inset
 
@@ -312,6 +324,20 @@ deep learning,
 \end_inset
 
  hence the name.
+ It should be mentioned though that we only use one hidden layer in our
+ neural network in the second stage due to computational constraints.
+ Increases in the number of hidden layers improves fit and lowers MSE, but
+ they also lead to volatility in the MSE estimates, particularly when the
+ node size is taken beyond the number of features in the data set.
+ There is thus reason to avoid doing this, especially in the 
+\begin_inset Quotes eld
+\end_inset
+
+small p
+\begin_inset Quotes erd
+\end_inset
+
+ setting of Angrist and Krueger.
  
 \end_layout
 
@@ -321,10 +347,12 @@ Results
 
 \begin_layout Standard
 We present the point estimates and standard errrors for the causal effects
- of interest computed using various methods.
- OLS is ordinary least squares regression, IV is a 2 stage least squares
- regression with an instrument, and post-lasso is the post-selective inference
- technique from Chernozhukov, Hansen and Spindler (2015).
+ of interest computed using the various methods.
+ (We present results on Deep IV in a separate section to be able to go through
+ all its peculiar details.) OLS is ordinary least squares regression, IV
+ is a 2 stage least squares regression with an instrument, and post-lasso
+ is the post-selective inference technique from Chernozhukov, Hansen and
+ Spindler (2015).
  The regression tree refers to using regression trees to partial out the
  effect of the other covariates (
 \begin_inset Formula $X$
@@ -335,7 +363,10 @@ We present the point estimates and standard errrors for the causal effects
 \end_inset
 
  respectively in our notation) and running a 2SLS regression on their residuals.
- The random forest averages many trees built in the above specification.
+ (Here, the outcome variable is the weekly wage a student earns after graduation
+, the endogenous regressor is the years of schooling and we use quarter
+ of birth interacted with year of birth as instruments.) The random forest
+ averages many trees built in the above specification.
 \end_layout
 
 \begin_layout Standard
@@ -343,7 +374,7 @@ We present the point estimates and standard errrors for the causal effects
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Tabular
@@ -597,8 +628,8 @@ We see that adding the controls doesn't alter the results by very much.
  which could have been correlated with the outcome, but in their absence,
  the coefficient on the endogenous variable soaks up their presence, raising
  the magnitude of the effect.
- To be fair though, the IV and the lasso coefficients are statistically
- indistiniguishable.
+ It may be noted, though, that the IV and the lasso coefficients are statistical
+ly indistiniguishable.
 \end_layout
 
 \begin_layout Standard
@@ -606,7 +637,7 @@ We see that adding the controls doesn't alter the results by very much.
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Tabular
@@ -818,8 +849,8 @@ Casual effects of institutions on contemporary GDP per capita in the Acemoglu
 
 \begin_layout Standard
 Our machine learning tools are more directly relevant in the AJR (2001)
- paper because there is a relatively large number of features (compared
- to the number of observations).
+ paper because there is a relatively large number of features (86, compared
+ to the number of observations, which is 163).
  However, this does not also change the fact that our number of observations
  are low to begin with, and so we are underpowered in a lot of these analyses.
  One benefit that is evident above is that machine learning is better at
@@ -839,6 +870,10 @@ high dimensional
 Deep IV 
 \end_layout
 
+\begin_layout Subsubsection
+Angrist and Krueger data
+\end_layout
+
 \begin_layout Standard
 Let us look at the Angrist and Krueger study first.
  The way deep IV works is in two stages.
@@ -849,7 +884,7 @@ Let us look at the Angrist and Krueger study first.
 \begin_inset Formula $W$
 \end_inset
 
-), we ise another neural net to predict the outcome variable.
+), we devise another neural net to predict the outcome variable.
  Given how much data we have, we are able to replicate the distribution
  of 
 \begin_inset Formula $W$
@@ -864,10 +899,6 @@ placement H
 wide false
 sideways false
 status collapsed
-
-\begin_layout Plain Layout
-
-\end_layout
 
 \begin_layout Plain Layout
 \begin_inset Graphics
@@ -892,11 +923,13 @@ Left: Deep IV is able to faithfully reproduce the distribution of
 \end_inset
 
 .
+ Note the perfect overlap between the distribution functions.
  Right: We plot the years of schooling (
 \begin_inset Formula $W$
 \end_inset
 
-) against the instrument.
+) against the instrument for the raw data as well as from many simulations
+ using the fitted Deep IV distributions.
  The black dots are the first quarter of each year.
  Deep IV does not get the seasonality perfectly but the trend is captured
  well as well as the general dip in first quarters.
@@ -945,7 +978,8 @@ status collapsed
 
 \begin_layout Plain Layout
 We pick the number of nodes associated with the smallest MSE, so long as
- the number of nodes is lower than the number of covariates in the dataset.
+ the number of nodes is lower than the number of covariates in the dataset,
+ 69.
  We decide to go with 43 nodes.
 \end_layout
 
@@ -995,8 +1029,8 @@ causal
 \begin_inset Quotes erd
 \end_inset
 
- blue line is actually pretty flat except for one bump around 12 years of
- education.
+ blue line is actually pretty flat (at the level of the average wage in
+ the full sample) except for one bump around 12 years of education.
  This is because our instrument can only really identify a local causal
  effect around the time of high school, which is the only time the compulsory
  schooling laws bind.
@@ -1063,7 +1097,18 @@ Counterfactuals from the Deep IV method.
 \end_layout
 
 \begin_layout Standard
-Next, how do we do on the Acemoglu et al.
+We see very little variation by demographic characteristics though, and
+ even when we do, it is not statistically significant.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Acemoglu et al.
+ data
+\end_layout
+
+\begin_layout Standard
+How do we do on the Acemoglu et al.
  data set?
 \end_layout
 
@@ -1099,7 +1144,7 @@ status collapsed
 \begin_layout Plain Layout
 Measures of fit in the two stages of Deep IV.
  Left: The first stage uses the negative log likelihood as loss function.
- We pick 3 normals to model the first stage distribution.
+ We pick 2 normals and 6 nodes to model the first stage distribution.
  Right: The MSE criterion for the structural fit in the second stage.
  We decide to go with 2 nodes in the hidden layer of the neural network
  as it minimizes this cross validation MSE.
@@ -1177,7 +1222,9 @@ Left: Scatterplot of the relation between
 
 \begin_layout Standard
 We find satisfactory performances in the fit from the two legs of the deep
- IV method.
+ IV method, i.e.
+ the first stage endogenous variable distribution fit and the second state
+ outcome fit.
  Let us then look at counterfactual predictions for the question: what is
  the effect of institutions, as measured using an index of the risk of expropria
 tion of personal property, on the prosperity of a nation, as proxied by
@@ -1202,7 +1249,16 @@ status collapsed
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Just as we saw in the previous data set, the causal line is much flatter
+The scatterplot here is the raw data and the 
+\begin_inset Quotes eld
+\end_inset
+
+structural
+\begin_inset Quotes erd
+\end_inset
+
+ lines are causal fits from Deep IV.
+ Just as we saw in the previous data set, the structural line is much flatter
  than the raw data (which does not account for confounders).
  Still, we note that there is a significant positive relationship between
  having good, institutions and prosperity.
@@ -1242,15 +1298,16 @@ s and endogenous regressors.
 \end_layout
 
 \begin_layout Standard
-Deep IV promises to be a state of the art method in counterfactual prediction
+Deep IV promises to be a state-of-the-art method in counterfactual prediction
  and it is favorable in the richness and flexiblity of the counterfactual
  curve that can be modeled with the data, which is a giant leap from the
  simple one coefficient linear regression index that we traditionally use
  in 2SLS.
- At the same time it is computationally intensive.
+ At the same time, it is computationally intensive and has bells and whistles
+ that may be difficult to interpret.
  Our measures of fit are encouraging but we still do not get the relationship
  between the outcome and the endogenous variable perfectly right.
- This is because we only use one hidden layer in each of the deep learning
+ This may be because we only use one hidden layer in each of the deep learning
  networks.
  This does not make full use of the deep learning architecture and we are
  limiting ourselves due to time constraints.
@@ -1278,6 +1335,9 @@ small
 mental variation in years of school in that range and nowhere else.
  This was clearly demonstrated in the counterfactual plot from Deep IV on
  the returns to schooling.
+ One should therefore exercise prudence when replacing well understood regressio
+n techniques with modern methods and have a thorough understanding of the
+ data and its limitations before starting statistical analysis on it.
 \end_layout
 
 \begin_layout Bibliography
@@ -1321,6 +1381,19 @@ V.
  Post-selection and post-regularization inference in linear models with
  many controls and instruments.
  American Economic Review: Paper & Proceedings 105(5), 486--490.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-1"
+
+\end_inset
+
+Hartford, J., Lewis, G., Leyton-Brown, K., & Taddy, M.
+ (2016).
+ Counterfactual Prediction with Deep Instrumental Variables Networks.
+ arXiv preprint arXiv:1612.09596.
 \end_layout
 
 \end_body
