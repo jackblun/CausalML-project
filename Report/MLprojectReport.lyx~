@@ -295,12 +295,989 @@ far away
 Deep IV networks
 \end_layout
 
+\begin_layout Standard
+Deep IV networks form a framework to generalize the 2SLS process itself.
+ The first stage is replaced by a nonparametric algorithm that computes
+ the conditional density of the endogenous variable given the controls and
+ the instrument.
+ Using this, one uses a second machine learning algorithm to approximate
+ the best predictor of the outcome using the above fitted conditional distributi
+on.
+ The second stage uses neural networks, also referred to as 
+\begin_inset Quotes eld
+\end_inset
+
+deep learning,
+\begin_inset Quotes erd
+\end_inset
+
+ hence the name.
+ 
+\end_layout
+
 \begin_layout Section
 Results
 \end_layout
 
+\begin_layout Standard
+We present the point estimates and standard errrors for the causal effects
+ of interest computed using various methods.
+ OLS is ordinary least squares regression, IV is a 2 stage least squares
+ regression with an instrument, and post-lasso is the post-selective inference
+ technique from Chernozhukov, Hansen and Spindler (2015).
+ The regression tree refers to using regression trees to partial out the
+ effect of the other covariates (
+\begin_inset Formula $X$
+\end_inset
+
+) on the outcome, instrument and endogenous variable (
+\begin_inset Formula $Y,Z,W$
+\end_inset
+
+ respectively in our notation) and running a 2SLS regression on their residuals.
+ The random forest averages many trees built in the above specification.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Method
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Estimate
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+S.E.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+OLS 1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0675
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.000337
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+OLS 2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0702
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.000336
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IV 1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0643
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.028719
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IV 2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0685
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.028957
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Post-lasso 1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.099
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0201
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Post-lasso 2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.104
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.02
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Casual effects of returns from schooling computed on the Angrist and Krueger
+ (1991) data.
+ We have two sets of controls, one containing basic covariates and the other
+ including all first order interactions between then.
+ These are labelled 1 and 2 above respectively.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We see that adding the controls doesn't alter the results by very much.
+ Further, the OLS and the IV results are very similar in this sample, which
+ suggests there is little bias in the OLS to begin with.
+ However, we note that the post lasso estimates are significantly bigger
+ than the rest, which is odd especially because we expect lasso to shrink
+ coefficients.
+ This could have to do with the fact that we use many, many instruments
+ are they are all only weakly correlated with the endogenous variable.
+ This has the effect of using lots of noise as predictor variables.
+ The other effect is that lasso selectively drops some of these variables,
+ which could have been correlated with the outcome, but in their absence,
+ the coefficient on the endogenous variable soaks up their presence, raising
+ the magnitude of the effect.
+ To be fair though, the IV and the lasso coefficients are statistically
+ indistiniguishable.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Method
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Estimate
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+S.E.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+OLS
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.308369
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.05821423
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IV
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.210186
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.650509
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Post-lasso
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.185839
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.5382147
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Regression tree
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.3108931
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.1887891
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Random forest
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.181141
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.6107168
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Casual effects of institutions on contemporary GDP per capita in the Acemoglu
+ et al.
+ (2001) data.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our machine learning tools are more directly relevant in the AJR (2001)
+ paper because there is a relatively large number of features (compared
+ to the number of observations).
+ However, this does not also change the fact that our number of observations
+ are low to begin with, and so we are underpowered in a lot of these analyses.
+ One benefit that is evident above is that machine learning is better at
+ handling 
+\begin_inset Quotes eld
+\end_inset
+
+high dimensional
+\begin_inset Quotes erd
+\end_inset
+
+ data: look at the difference in standard errors for the IV vs post-lasso.
+ 
+\end_layout
+
+\begin_layout Subsection
+Deep IV 
+\end_layout
+
+\begin_layout Standard
+Let us look at the Angrist and Krueger study first.
+ The way deep IV works is in two stages.
+ In the first, we use a neural network to fit the distribution of the endogenous
+ regressor using the instrument and the controls as a sum of independent
+ normals.
+ With this fitted distribution of the policy variable (aka 
+\begin_inset Formula $W$
+\end_inset
+
+), we ise another neural net to predict the outcome variable.
+ Given how much data we have, we are able to replicate the distribution
+ of 
+\begin_inset Formula $W$
+\end_inset
+
+ pretty well.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename cdf_endog_MN.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename endogVinst.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Left: Deep IV is able to faithfully reproduce the distribution of 
+\begin_inset Formula $W$
+\end_inset
+
+.
+ Right: We plot the years of schooling (
+\begin_inset Formula $W$
+\end_inset
+
+) against the instrument.
+ The black dots are the first quarter of each year.
+ Deep IV does not get the seasonality perfectly but the trend is captured
+ well as well as the general dip in first quarters.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The model parameters, i.e.
+ the number of nodes in the neural net layers are tuned using 
+\begin_inset Formula $K$
+\end_inset
+
+-fold cross validation.
+ We show the MSE criterion for the second stage:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename CV_2ndStage_graph.png
+	width 6in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+We pick the number of nodes associated with the smallest MSE, so long as
+ the number of nodes is lower than the number of covariates in the dataset.
+ We decide to go with 43 nodes.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Next, we present predictions of counterfactuals using our fitted models.
+ What is the causal effect of getting a certain number of years of education
+ on income?
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename obsVstructural_wages.png
+	width 6in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The green line is the raw wages observed in each cross section of the Census
+ for people with (endogenously obtained) years of education.
+ Note that is much steeper than the fitted blue line due to confounding
+ biases.
+ Further, obeserve that our 
+\begin_inset Quotes eld
+\end_inset
+
+causal
+\begin_inset Quotes erd
+\end_inset
+
+ blue line is actually pretty flat except for one bump around 12 years of
+ education.
+ This is because our instrument can only really identify a local causal
+ effect around the time of high school, which is the only time the compulsory
+ schooling laws bind.
+ They don't affect students in lower grades, and they certainly don't affect
+ students interested in receiving higher education.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The beauty of the Deep IV method is that we are also able to obtain counterfactu
+als by varying other covariates.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename cf_black.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename cf_region_race.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Counterfactuals from the Deep IV method.
+ Left: The returns to education split by marital status.
+ Right: Returns to education by race (specifically, whether black or not)
+ and geographic region in the United States.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Next, how do we do on the Acemoglu et al.
+ data set?
+\end_layout
+
+\begin_layout Standard
+First, we plot the measures of fit in the two stages of the deep IV estimation.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename CV_1stStage_graph.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename CV_2ndStage_graph_AJR.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Measures of fit in the two stages of Deep IV.
+ Left: The first stage uses the negative log likelihood as loss function.
+ We pick 3 normals to model the first stage distribution.
+ Right: The MSE criterion for the structural fit in the second stage.
+ We decide to go with 2 nodes in the hidden layer of the neural network
+ as it minimizes this cross validation MSE.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Another way to look at the effectiveness of the fit is to compare the fitted
+ first stage distribution with the actual data.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename endogVinstrument.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename hist_endog.png
+	width 3in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Left: Scatterplot of the relation between 
+\begin_inset Formula $Z$
+\end_inset
+
+ and 
+\begin_inset Formula $W$
+\end_inset
+
+.
+ We plot the raw data in blue and thousands of simulations from the fitted
+ mixed Gaussian network distribution in red, noting how well the latter
+ cover the data.
+ Right: A direct comparison of the densities of 
+\begin_inset Formula $W$
+\end_inset
+
+ in the raw data versus the first stage fit.
+ Again we note considerable overlap.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We find satisfactory performances in the fit from the two legs of the deep
+ IV method.
+ Let us then look at counterfactual predictions for the question: what is
+ the effect of institutions, as measured using an index of the risk of expropria
+tion of personal property, on the prosperity of a nation, as proxied by
+ the GDP per capita?
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename cf_riskexprop.png
+	width 6in
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Just as we saw in the previous data set, the causal line is much flatter
+ than the raw data (which does not account for confounders).
+ Still, we note that there is a significant positive relationship between
+ having good, institutions and prosperity.
+ The relationship is split by geography and we note that the returns to
+ institutions is inversely linked to the current level of prosperity of
+ the region (Africa shows the highest) and this is in keeping with diminishing
+ returns to investment with level of existing prosperity.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Discussion
+\end_layout
+
+\begin_layout Standard
+We explored several new methods of performing causal inference using modern
+ machine learning techniques.
+ We noted the pitfalls of IV regression, including the crudeness of the
+ linearity assumptions and the failure to deal with richer, high dimensional
+ covariates.
+ The lasso promises to retain the intuition with linear regression, while
+ also cleaning up the statistical analysis to really get to the model of
+ interest in high dimensional data.
+ Forests are also promising because they are sensitive to local variations
+ in the data and are able to better predict the relationships between instrument
+s and endogenous regressors.
+ 
+\end_layout
+
+\begin_layout Standard
+Deep IV promises to be a state of the art method in counterfactual prediction
+ and it is favorable in the richness and flexiblity of the counterfactual
+ curve that can be modeled with the data, which is a giant leap from the
+ simple one coefficient linear regression index that we traditionally use
+ in 2SLS.
+ At the same time it is computationally intensive.
+ Our measures of fit are encouraging but we still do not get the relationship
+ between the outcome and the endogenous variable perfectly right.
+ This is because we only use one hidden layer in each of the deep learning
+ networks.
+ This does not make full use of the deep learning architecture and we are
+ limiting ourselves due to time constraints.
+ If one had better computational resources, one could cross validate over
+ the number of hidden layers in the neural network and get a better approximatio
+n of the underlying statistical relationships in the data.
+\end_layout
+
+\begin_layout Standard
+At the same time, one should remember that analysis never trumps design.
+ The results can only ever be as good as the data and the experiment itself.
+ As we noted with the AJR paper, we see a lot of insignificant results even
+ with our modern methods because the data is 
+\begin_inset Quotes eld
+\end_inset
+
+small
+\begin_inset Quotes erd
+\end_inset
+
+ in nature along with the fact that the instrument may not be strong enough.
+ A better statistical method cannot change that.
+ Similarly, the instrument in the Angrist and Krueger data works only locally
+ at the high school graduation level and thus can only really induce quasiexperi
+mental variation in years of school in that range and nowhere else.
+ This was clearly demonstrated in the counterfactual plot from Deep IV on
+ the returns to schooling.
 \end_layout
 
 \begin_layout Bibliography
@@ -328,6 +1305,22 @@ Acemoglu, D., Johnson, S., & Robinson, J.
  The Colonial Origins of Comparative Development: An Empirical Investigation.
  The American Economic Review, 91(5), 1369-1401.
  Retrieved from http://www.jstor.org/stable/2677930
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-1"
+
+\end_inset
+
+V.
+ Chernozhukov, C.
+ Hansen, M.
+ Spindler (2015).
+ Post-selection and post-regularization inference in linear models with
+ many controls and instruments.
+ American Economic Review: Paper & Proceedings 105(5), 486--490.
 \end_layout
 
 \end_body
