@@ -1,0 +1,3 @@
+This .txt describes the file structure for the Final Econ293 project by Luis Armona, Jack Blundell, and Karthik Rajkumar. 
+
+The main directory contains two RMarkdown files, which implement the 'partialling out methods' we use in the project. These are divided into the two different empirical settings we look at. The DeepIV folder contains all code relating to the Deep IV section of the project, as well as an additional readme which describes the file structure there.
